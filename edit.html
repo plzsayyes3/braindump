@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1704382286291-2f322d42ebb5?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            padding-left: 20%;
+            padding-right: 20%;
+            box-sizing: border-box;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .drag-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* カード同士のマージンを20pxに拡大 */
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            transition: transform 0.3s ease;
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            word-wrap: break-word; /* 折り返しを設定 */
+        }
+
+        .card p {
+            margin: 0;
+        }
+
+        .card-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #666d7a;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            border-bottom: 5px solid #4a5059;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .edit-btn {
+            margin-right: 5px;
+        }
+
+        .delete-btn {
+            background-color: #bcaf70;
+        }
+
+        .delete-btn:hover {
+            background-color: #6d653e;
+        }
+
+        .dragging {
+            opacity: 0.5;
+        }
+
+        .fa-position-right {
+            position: absolute;
+            top: calc(50% - .5em);
+            right: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Edit</h1>
+    <div id="cardContainer" class="drag-container"></div>
+
+    <script>
+        // 以前のスクリプト
+        function loadCards() {
+            const data = localStorage.getItem('todoList');
+            const todoList = data ? JSON.parse(data) : [];
+
+            const cardContainer = document.getElementById('cardContainer');
+            cardContainer.innerHTML = '';
+
+            todoList.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.draggable = true;
+
+                const cardContent = document.createElement('p');
+                cardContent.textContent = item.text;
+                card.appendChild(cardContent);
+
+                const buttonsContainer = document.createElement('div');
+                buttonsContainer.classList.add('card-buttons');
+
+                const editButton = document.createElement('button');
+                editButton.classList.add('edit-btn');
+                editButton.innerHTML = '<i class="fas fa-edit"></i>';
+                editButton.onclick = function () {
+                    editCard(index);
+                };
+                buttonsContainer.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn');
+                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteButton.onclick = function () {
+                    showConfirmation(index);
+                };
+                buttonsContainer.appendChild(deleteButton);
+
+                card.appendChild(buttonsContainer);
+
+                cardContainer.appendChild(card);
+            });
+
+            initDragAndDrop();
+        }
+
+        function initDragAndDrop() {
+            const cardContainer = document.getElementById('cardContainer');
+            let dragStartIndex;
+
+            cardContainer.addEventListener('dragstart', (e) => {
+                e.target.classList.add('dragging');
+                dragStartIndex = Array.from(cardContainer.children).indexOf(e.target);
+            });
+
+            cardContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const dragOverIndex = getDragOverIndex(cardContainer, e.clientY);
+                const draggingElement = document.querySelector('.dragging');
+                const currentDraggingIndex = Array.from(cardContainer.children).indexOf(draggingElement);
+
+                if (dragOverIndex === null || currentDraggingIndex === dragOverIndex) {
+                    return;
+                }
+
+                const children = Array.from(cardContainer.children);
+                swapElements(children, currentDraggingIndex, dragOverIndex);
+
+                loadCards(); // Refresh the cards with the new order
+
+                draggingElement.classList.remove('dragging');
+                draggingElement.classList.add('dragged');
+            });
+
+            cardContainer.addEventListener('dragend', () => {
+                document.querySelectorAll('.card').forEach((card) => {
+                    card.classList.remove('dragging');
+                    card.classList.remove('dragged');
+                });
+            });
+        }
+
+        function getDragOverIndex(container, y) {
+            const children = Array.from(container.children);
+            return children.reduce((closestIndex, child, currentIndex) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+
+                if (offset < 0 && offset > closestIndex.offset) {
+                    return { offset: offset, index: currentIndex };
+                } else {
+                    return closestIndex;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY, index: -1 }).index;
+        }
+
+        function swapElements(array, i, j) {
+            const temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+
+        function editCard(index) {
+            const newText = prompt('Edit Text:', todoList[index].text);
+
+            if (newText !== null) {
+                todoList[index].text = newText;
+                localStorage.setItem('todoList', JSON.stringify(todoList));
+                loadCards();
+            }
+        }
+
+        function showConfirmation(index) {
+            const result = confirm('Are you sure you want to delete this item?');
+
+            if (result) {
+                deleteCard(index);
+            }
+        }
+
+        function deleteCard(index) {
+            todoList.splice(index, 1);
+            localStorage.setItem('todoList', JSON.stringify(todoList));
+            loadCards();
+        }
+
+        window.onload = function () {
+            loadCards();
+        };
+    </script>
+</body>
+
+</html>

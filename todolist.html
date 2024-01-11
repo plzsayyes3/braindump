@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脳の棚卸</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('https://images.unsplash.com/photo-1536623975707-c4b3b2af565d?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #inputText {
+            width: 30%;
+            height: 200px;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.5); /* 半透明の白い背景 */
+            border: none; /* 枠をなくす */
+            padding: 10px; /* テキストと背景の間隔を追加 */
+            resize: none; /* リサイズを禁止 */
+        }
+
+        button {
+            background-color: #666d7a;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            border-bottom: 5px solid #4a5059; /* 追加 */
+        }
+
+        button:hover {
+            margin-top: 3px;
+            border-bottom: 2px solid #4a5059; /* 追加 */
+        }
+
+
+        .btn--radius {
+            border-radius: 100vh;
+        }
+
+        .fa-position-right {
+            position: absolute;
+            top: calc(50% - .5em);
+            right: 1rem;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>脳の棚卸</h1>
+    <textarea id="inputText" placeholder="テキストを入力してください" onkeydown="handleKeyPress(event)"></textarea>
+    <button class="btn--red btn--cubic btn--radius" onclick="saveData()">
+        保存
+        <i class="fas fa-position-right fa-arrow-right"></i>
+    </button>
+
+    <script>
+        function saveData() {
+            const inputText = document.getElementById('inputText').value;
+
+            if (inputText.trim() !== "") {
+                // 既存のデータを取得
+                let existingData = localStorage.getItem('todoList');
+                existingData = existingData ? JSON.parse(existingData) : [];
+
+                // 新しいデータを追加
+                existingData.push({ text: inputText });
+
+                // ローカルストレージに保存
+                localStorage.setItem('todoList', JSON.stringify(existingData));
+
+                // テキストエリアをクリア
+                document.getElementById('inputText').value = "";
+            }
+        }
+
+        function handleKeyPress(event) {
+            // Ctrlキーが押されているかつEnterキーが押された場合に保存を実行
+            if (event.ctrlKey && event.key === "Enter") {
+                saveData();
+            }
+        }
+    </script>
+</body>
+
+</html>

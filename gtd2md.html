@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTD to Markdown</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1603484477859-abe6a73f9366?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            color: #583e1d;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #taskSection,
+        #emotionSection,
+        #ideaSection {
+            background-color: rgba(255, 255, 255, 0.5); /* 半透明の白色背景 */
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        button {
+            background-color: #cfc8c1;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #7e0009;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>GTD to Markdown</h1>
+
+    <div id="taskSection">
+        <h2>task</h2>
+        <ul id="taskList"></ul>
+        <button onclick="deleteLastItem('taskList')">削除</button>
+    </div>
+
+    <div id="emotionSection">
+        <h2>emotion</h2>
+        <ul id="emotionList"></ul>
+        <button onclick="deleteLastItem('emotionList')">削除</button>
+    </div>
+
+    <div id="ideaSection">
+        <h2>idea</h2>
+        <ul id="ideaList"></ul>
+        <button onclick="deleteLastItem('ideaList')">削除</button>
+    </div>
+
+    <script>
+        function generateMarkdown() {
+            const data = localStorage.getItem('todoList');
+            const todoList = data ? JSON.parse(data) : [];
+
+            const taskList = document.getElementById('taskList');
+            const emotionList = document.getElementById('emotionList');
+            const ideaList = document.getElementById('ideaList');
+
+            todoList.forEach(item => {
+                if (item.option) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = item.text;
+
+                    switch (item.option) {
+                        case 'task':
+                            taskList.appendChild(listItem);
+                            break;
+                        case 'emotion':
+                            emotionList.appendChild(listItem);
+                            break;
+                        case 'idea':
+                            ideaList.appendChild(listItem);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            });
+        }
+
+        function deleteLastItem(sectionId) {
+            const sectionList = document.getElementById(sectionId);
+            const lastItem = sectionList.lastElementChild;
+
+            if (lastItem) {
+                sectionList.removeChild(lastItem);
+
+                // ローカルストレージのデータも更新
+                updateLocalStorage();
+            }
+        }
+
+        function updateLocalStorage() {
+            const taskList = Array.from(document.getElementById('taskList').children).map(item => ({ text: item.textContent, option: 'task' }));
+            const emotionList = Array.from(document.getElementById('emotionList').children).map(item => ({ text: item.textContent, option: 'emotion' }));
+            const ideaList = Array.from(document.getElementById('ideaList').children).map(item => ({ text: item.textContent, option: 'idea' }));
+
+            const todoList = [...taskList, ...emotionList, ...ideaList];
+            localStorage.setItem('todoList', JSON.stringify(todoList));
+        }
+
+        window.onload = function () {
+            generateMarkdown();
+        };
+    </script>
+</body>
+
+</html>

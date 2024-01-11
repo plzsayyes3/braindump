@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON編集</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('https://images.unsplash.com/photo-1536623975707-c4b3b2af565d?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #jsonText {
+            width: 50%;
+            height: 300px;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.5); /* 半透明の白い背景 */
+            border: none; /* 枠をなくす */
+            padding: 10px; /* テキストと背景の間隔を追加 */
+            resize: none; /* リサイズを禁止 */
+        }
+
+        button {
+            background-color: #666d7a;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            border-bottom: 5px solid #4a5059; /* 追加 */
+        }
+
+        button:hover {
+            margin-top: 3px;
+            border-bottom: 2px solid #4a5059; /* 追加 */
+        }
+
+        .btn--radius {
+            border-radius: 100vh;
+        }
+
+        .fa-position-right {
+            position: absolute;
+            top: calc(50% - .5em);
+            right: 1rem;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>JSON編集</h1>
+    <textarea id="jsonText" placeholder="JSONデータを入力してください"></textarea>
+    <button class="btn--red btn--cubic btn--radius" onclick="updateData()">
+        保存
+        <i class="fas fa-position-right fa-arrow-right"></i>
+    </button>
+
+    <script>
+        // ローカルストレージからJSONデータを読み込み
+        var savedData = localStorage.getItem('todoList');
+
+        // JSONデータが存在する場合にテキストエリアに表示
+        if (savedData) {
+            document.getElementById('jsonText').value = savedData;
+        }
+
+        function updateData() {
+            const jsonText = document.getElementById('jsonText').value;
+
+            try {
+                // JSONデータが正しい形式か確認
+                JSON.parse(jsonText);
+
+                // ローカルストレージに保存
+                localStorage.setItem('todoList', jsonText);
+                alert('保存しました。');
+            } catch (error) {
+                alert('JSONデータが無効です。');
+            }
+        }
+    </script>
+</body>
+
+</html>
