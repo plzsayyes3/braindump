@@ -312,6 +312,26 @@
       });
       selectedCard.classList.add('selected-card');
     }
+    function scrollHandler(event) {
+      // ホイールイベントから取得したスクロール量
+      var delta = event.deltaY || event.detail || (-event.wheelDelta);
+
+      // 横方向のスクロール量（横スクロールを有効にする場合はコメントを外す）
+      // var deltaX = event.deltaX || 0;
+
+      // スクロールを適用する要素を取得
+      var container = document.getElementById('scroll-container');
+      var content = document.getElementById('scroll-content');
+
+      // 縦方向のスクロールを適用
+      container.scrollTop += delta;
+
+      // 横方向のスクロールを適用（横スクロールを有効にする場合はコメントを外す）
+      // content.scrollLeft += deltaX;
+
+      // デフォルトのスクロール動作を無効にする
+      event.preventDefault();
+    }
   </script>
 </body>
 </html>
