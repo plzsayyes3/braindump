@@ -28,10 +28,13 @@
       align-items: center;
       min-height: 100vh; /* 画面の高さいっぱいに表示 */
       margin: 0; /* ボディの余白をなくす */
+      padding: 0;
       background-image: url('https://images.unsplash.com/photo-1515445946706-a8024608d459?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
       background-size: cover;
       background-position: center;
-  
+      height: 100vh;
+      flex-direction: column;
+      color: #fff;
     }
 
     #textInput {
@@ -47,6 +50,33 @@
 </head>
 <body>
   <textarea id="textInput" rows="10" cols="30"></textarea>
-  
+  <details>
+    <summary>フォーマット</summary>
+    <textarea id="story" name="story" rows="5" cols="33">
+      # Week
+      ## 1/15-1/21
+      中身
+      ## 1/22-1/27
+      中身
+      ## 1/28-2/4
+      - 中身
+      ## 2/5-2/11
+      - 中身
+      # Month
+      ## 3月
+      - 中身
+      ## 4月
+      - 中身
+      # Quater
+      ## 4-6月
+      - 中身
+      ## 7-9月
+      - 中身
+      ## 10-12月
+      - 中身
+      ## 1-3月
+      - 中身
+      </textarea>
+    </details>
 </body>
 </html>
