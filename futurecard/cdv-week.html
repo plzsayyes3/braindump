@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Viewer</title>
+  <style>
+    .cards-container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 0 10px 10px 0;
+      flex: 1 0 calc(33.33% - 20px); /* Adjust the width based on your layout */
+    }
+
+    .section {
+      margin-bottom: 20px;
+      clear: both;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="cardsContainer" class="cards-container"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const savedText = localStorage.getItem("card");
+      const cardsContainer = document.getElementById("cardsContainer");
+
+      if (savedText && cardsContainer) {
+        const lines = savedText.split('\n');
+        let currentCard = null;
+
+        for (const line of lines) {
+          if (line === "# Week") {
+            // 新しいカードを始める前に前のカードを追加
+            if (currentCard !== null) {
+              cardsContainer.appendChild(currentCard);
+            }
+
+            // 新しいカードを作成
+            currentCard = document.createElement("div");
+            currentCard.classList.add("card");
+
+            // セクションのタイトルを追加
+            const title = document.createElement("h1");
+            title.textContent = "Week";
+            currentCard.appendChild(title);
+          } else if (line.startsWith("## ")) {
+            // カードの中にタイトルがあれば h2 として追加
+            const sectionTitle = document.createElement("h2");
+            sectionTitle.textContent = line.substring(3).trim();
+            currentCard.appendChild(sectionTitle);
+          } else if (line === "---") {
+            // 区切り線があればセクションを閉じる
+            if (currentCard !== null) {
+              cardsContainer.appendChild(currentCard);
+              currentCard = null;
+            }
+          } else if (currentCard !== null) {
+            // カードの中身にテキストを追加
+            const paragraph = document.createElement("p");
+            paragraph.textContent = line;
+            currentCard.appendChild(paragraph);
+          }
+        }
+
+        // ループ終了後、currentCardがnullでない場合にもカードを追加
+        if (currentCard !== null) {
+          cardsContainer.appendChild(currentCard);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
