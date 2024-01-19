@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+        }
+        #markdown-container {
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+
+<textarea id="markdown-input" placeholder="Markdownを入力してください"></textarea>
+<button onclick="saveMarkdown()">保存</button>
+
+<div id="markdown-container"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMarkdown();
+    });
+
+    function saveMarkdown() {
+        var markdownInput = document.getElementById('markdown-input').value;
+        localStorage.setItem('markdownContent', markdownInput);
+        loadMarkdown();
+    }
+
+    function loadMarkdown() {
+        var markdownContent = localStorage.getItem('markdownContent');
+        if (!markdownContent) {
+            // ローカルストレージにMarkdownが存在しない場合、初期内容を表示
+            markdownContent = '# タイトル\n- コンテンツ';
+        }
+
+        var markdownContainer = document.getElementById('markdown-container');
+        markdownContainer.innerHTML = marked(markdownContent);
+    }
+</script>
+
+<!-- Markdownパーサーのライブラリを読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+</body>
+</html>

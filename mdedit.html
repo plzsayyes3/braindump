@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON to Markdown</title>
+</head>
+<body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // JSONデータを表示する関数
+        function displayJSONData(key) {
+            // ローカルストレージからJSONデータを取得
+            var jsonData = localStorage.getItem(key);
+
+            // JSONデータが存在するか確認
+            if (jsonData) {
+                try {
+                    // JSONデータをJavaScriptオブジェクトにパース
+                    var dataObject = JSON.parse(jsonData);
+
+                    // Markdown形式に変換
+                    var markdownContent = jsonToMarkdown(dataObject);
+
+                    // 変換したMarkdownを表示
+                    var markdownContainer = document.createElement('div');
+                    markdownContainer.innerHTML = '<h2>' + key + '</h2><pre>' + markdownContent + '</pre>';
+                    document.body.appendChild(markdownContainer);
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                }
+            } else {
+                console.error('No JSON data found for key:', key);
+            }
+        }
+
+        // JSONオブジェクトをMarkdown形式に変換する関数
+        function jsonToMarkdown(obj, depth = 0) {
+            var markdown = '';
+            var indent = '    '.repeat(depth);
+
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    var value = obj[key];
+
+                    // キーと値をMarkdown形式に追加
+                    markdown += indent + '- **' + key + ':** ';
+
+                    if (typeof value === 'object') {
+                        // 値がオブジェクトの場合、再帰的に処理
+                        markdown += '\n' + jsonToMarkdown(value, depth + 1);
+                    } else {
+                        // 値がオブジェクトでない場合、そのまま表示
+                        markdown += value + '\n';
+                    }
+                }
+            }
+
+            return markdown;
+        }
+
+        // 各キーに対してJSONデータを表示
+        displayJSONData('cardData1');
+        displayJSONData('cardData2');
+        displayJSONData('cardData3');
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Future Card</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-image: url(https://images.unsplash.com/photo-1705258814435-65ed6ce0e99a?q=80&w=3873&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+    }
+
+    .header {
+      background-color: #94c2e088;
+      padding: 10px;
+    }
+
+    .create-button {
+      background-color: #61809554;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+
+    .card-container {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 20px;
+      gap: 10px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .card {
+      min-width: 250px;
+      background-color: hwb(196 87% 0% / 0.675);
+      border-radius: 8px;
+      padding: 10px;
+      box-sizing: border-box;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .title
+    .list-container {
+      cursor: pointer;
+    }
+
+    .editable {
+      padding: 5px;
+      margin: 5px 0;
+    }
+
+    .list-item {
+      padding: 5px 0;
+    }
+
+    .combined-text {
+      width: 100%;
+      box-sizing: content-box;
+      margin-bottom: 10px;
+      border: none;
+      background-color: hwb(196 87% 0% / 0);
+    }
+
+    .preview-mode {
+      display: none;
+    }
+
+    .selected-card {
+      border: 2px solid #ff6347;
+    }
+  </style>
+</head>
+<body>
+  <h1>Future Card</h1>
+  <div class="header">
+    <button class="create-button" onclick="addCard('cardData1')">New Week</button>
+    <button onclick="saveToJSON('cardData1')">保存</button>
+  </div>
+
+  <div class="card-container" id="cardContainer1">
+    <!-- カード要素を追加 (View 1) -->
+  </div>
+
+  <div class="header">
+    <button class="create-button" onclick="addCard('cardData2')">New Month</button>
+    <button onclick="saveToJSON('cardData2')">保存</button>
+  </div>
+
+  <div class="card-container" id="cardContainer2">
+    <!-- カード要素を追加 (View 2) -->
+  </div>
+
+  <div class="header">
+    <button class="create-button" onclick="addCard('cardData3')">New Quarter</button>
+    <button onclick="saveToJSON('cardData3')">保存</button>
+  </div>
+
+  <div class="card-container" id="cardContainer3">
+    <!-- カード要素を追加 (View 3) -->
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCards('cardData1', 'cardContainer1');
+      loadCards('cardData2', 'cardContainer2');
+      loadCards('cardData3', 'cardContainer3');
+    });
+
+    function addCard(storageKey) {
+      const cardContainer = document.getElementById(`cardContainer${storageKey.slice(-1)}`);
+      const newCard = createCard(storageKey);
+      cardContainer.appendChild(newCard);
+    }
+
+    function createCard(storageKey) {
+      const newCard = document.createElement('div');
+      const newId = new Date().getTime();
+      newCard.className = 'card';
+      newCard.setAttribute('data-id', newId);
+
+      const title = createEditableDiv('title', 'New Card Title', (element) => saveContent(element, newId, storageKey));
+      const combinedText = createEditableTextarea('combined-text', 'New Item', (element) => saveContent(element, newId, storageKey));
+
+      newCard.appendChild(title);
+      newCard.appendChild(combinedText);
+
+      newCard.addEventListener('click', () => selectCard(newCard));
+
+      return newCard;
+    }
+
+    function createEditableDiv(className, text, blurCallback) {
+      const element = document.createElement('div');
+      element.className = `${className} editable`;
+      element.textContent = text;
+      element.setAttribute('contenteditable', 'true');
+      element.addEventListener('input', () => blurCallback(element));
+      element.addEventListener('dblclick', () => enterEditMode(element));
+      element.addEventListener('blur', () => blurCallback(element));
+      return element;
+    }
+
+    function createEditableTextarea(className, text, blurCallback) {
+      const element = document.createElement('textarea');
+      element.className = `${className} editable`;
+      element.textContent = text;
+      element.setAttribute('contenteditable', 'true');
+      element.addEventListener('input', () => blurCallback(element));
+      element.addEventListener('dblclick', () => enterEditMode(element));
+      element.addEventListener('blur', () => blurCallback(element));
+      return element;
+    }
+
+    function loadCards(storageKey, containerId) {
+      const cardContainer = document.getElementById(containerId);
+      const savedData = localStorage.getItem(storageKey);
+
+      if (savedData) {
+        const cards = JSON.parse(savedData);
+        cards.forEach(cardData => {
+          const newCard = createCard(storageKey);
+          loadCardData(newCard, cardData);
+          cardContainer.appendChild(newCard);
+        });
+      } else {
+        const newCard = createCard(storageKey);
+        cardContainer.appendChild(newCard);
+      }
+    }
+
+    function loadCardData(card, data) {
+      card.querySelector('.title').textContent = data.title;
+      card.querySelector('.combined-text').value = data.items.join('\n');
+    }
+
+    function enterEditMode(element) {
+      element.setAttribute('contenteditable', 'true');
+      element.classList.add('editable');
+      element.focus();
+    }
+
+    function saveContent(element, id, storageKey) {
+      element.setAttribute('contenteditable', 'false');
+      element.classList.remove('editable');
+      saveToJSON(storageKey);
+    }
+
+    function saveToJSON(storageKey) {
+      const cardContainer = document.getElementById(`cardContainer${storageKey.slice(-1)}`);
+      const cards = [];
+
+      cardContainer.querySelectorAll('.card').forEach(card => {
+        const cardData = {
+          id: card.getAttribute('data-id'),
+          title: card.querySelector('.title').textContent,
+          items: card.querySelector('.combined-text').value.split('\n')
+        };
+        cards.push(cardData);
+      });
+
+      const jsonData = JSON.stringify(cards);
+      console.log(jsonData);
+
+      localStorage.setItem(storageKey, jsonData);
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        const editableElement = document.querySelector('.editable[contenteditable="true"]');
+        if (editableElement) {
+          if (event.shiftKey) {
+            enterPreviewMode();
+          } else {
+            editableElement.blur();
+          }
+        }
+      } else if (event.key === 'Backspace') {
+        const selectedCard = document.querySelector('.selected-card');
+        if (selectedCard) {
+          // アラートを表示
+          const confirmDelete = confirm('本当にカードを削除しますか？');
+          if (confirmDelete) {
+            // カード削除処理
+            deleteCard(selectedCard);
+          }
+        }
+      }
+    }
+
+    function deleteCard(card) {
+      const storageKey = `cardData${card.parentElement.id.slice(-1)}`;
+      const cardId = card.getAttribute('data-id');
+
+      // カードを削除
+      card.remove();
+
+      // JSONデータ更新
+      saveToJSON(storageKey);
+    }
+
+    function enterPreviewMode() {
+      const cardContainer = document.querySelector('.card-container');
+      cardContainer.querySelectorAll('.editable').forEach(element => {
+        element.classList.add('preview-mode');
+      });
+    }
+
+    function exitPreviewMode() {
+      const cardContainer = document.querySelector('.card-container');
+      cardContainer.querySelectorAll('.editable').forEach(element => {
+        element.classList.remove('preview-mode');
+      });
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    const cardContainers = document.querySelectorAll('.card-container');
+
+    cardContainers.forEach(cardContainer => {
+      cardContainer.addEventListener('wheel', (event) => {
+        cardContainer.scrollLeft += event.deltaY;
+        event.preventDefault();
+      });
+
+      cardContainer.addEventListener('mousedown', (event) => {
+        const isCard = event.target.classList.contains('card');
+        if (isCard) {
+          selectCard(event.target);
+        }
+      });
+
+      let isDragging = false;
+      let startX;
+      let scrollLeft;
+
+      cardContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.pageX - cardContainer.offsetLeft;
+        scrollLeft = cardContainer.scrollLeft;
+        cardContainer.classList.add('dragging');
+      });
+
+      cardContainer.addEventListener('mouseleave', () => {
+        isDragging = false;
+        cardContainer.classList.remove('dragging');
+      });
+
+      cardContainer.addEventListener('mouseup', () => {
+        isDragging = false;
+        cardContainer.classList.remove('dragging');
+      });
+
+      cardContainer.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - cardContainer.offsetLeft;
+        const walk = (x - startX) * 2;
+        cardContainer.scrollLeft = scrollLeft - walk;
+      });
+    });
+
+    function selectCard(selectedCard) {
+      document.querySelectorAll('.card').forEach(card => {
+        card.classList.remove('selected-card');
+      });
+      selectedCard.classList.add('selected-card');
+    }
+  </script>
+</body>
+</html>

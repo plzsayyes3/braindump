@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>脳の棚卸</title>
+    <title>lighten up mind positive</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
@@ -65,48 +65,53 @@
         }
     </style>
 </head>
-
 <body>
-    <h1>脳の棚卸</h1>
-    <textarea id="inputText" placeholder="テキストを入力してください" onkeydown="handleKeyPress(event)"></textarea>
-    <button class="btn--red btn--cubic btn--radius" onclick="saveData()">
-        保存
-        <i class="fas fa-position-right fa-arrow-right"></i>
-    </button>
+    <h1>lighten up mind positive</h1>
+<textarea id="inputText" placeholder="テキストを入力してください" onkeydown="handleKeyPress(event)"></textarea>
 
-    <script>
-        function saveData() {
-            const inputText = document.getElementById('inputText').value;
+<button class="btn--red btn--cubic btn--radius" onclick="saveData()">
+    保存
+    <i class="fas fa-position-right fa-arrow-right"></i>
+</button>
 
-            if (inputText.trim() !== "") {
-                // 既存のデータを取得
-                let existingData = localStorage.getItem('todoList');
-                existingData = existingData ? JSON.parse(existingData) : [];
+<script>
+    function saveData() {
+        const inputText = document.getElementById('inputText').value;
 
-                // 新しいデータにcreatedDateを追加
-                const newData = {
-                    text: inputText,
-                    createdDate: new Date().toISOString()  // 現在の日時をISO形式で保存
+        if (inputText.trim() !== "") {
+            // 入力されたテキストを改行で分割
+            const items = inputText.split('\n').map(item => item.trim().replace(/^-\s*/, ''));
+
+            // 既存のデータを取得
+            let existingData = localStorage.getItem('todoList');
+            existingData = existingData ? JSON.parse(existingData) : [];
+
+            // 新しいデータにcreatedDateを追加
+            const newDataArray = items.map(item => {
+                return {
+                    text: item,
+                    createdDate: new Date().toISOString()
                 };
+            });
 
-                // 新しいデータを追加
-                existingData.push(newData);
+            // 新しいデータを既存のデータに追加
+            existingData = existingData.concat(newDataArray);
 
-                // ローカルストレージに保存
-                localStorage.setItem('todoList', JSON.stringify(existingData));
+            // ローカルストレージに保存
+            localStorage.setItem('todoList', JSON.stringify(existingData));
 
-                // テキストエリアをクリア
-                document.getElementById('inputText').value = "";
-            }
+            // テキストエリアをクリア
+            document.getElementById('inputText').value = "";
         }
+    }
 
-        function handleKeyPress(event) {
-            // Ctrlキーが押されているかつEnterキーが押された場合に保存を実行
-            if (event.ctrlKey && event.key === "Enter") {
-                saveData();
-            }
+    function handleKeyPress(event) {
+        // Mac で Command キーが押されているかつEnterキーが押された場合に保存を実行
+        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+            saveData();
         }
-    </script>
+    }
+</script>
 </body>
 
 </html>

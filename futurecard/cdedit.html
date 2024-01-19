@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Card Editor</title>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // ページ読み込み時にローカルストレージからデータを読み込む
+      const savedText = localStorage.getItem("card");
+      const textInput = document.getElementById("textInput");
+
+      // ローカルストレージに保存されたデータがあれば表示する
+      if (savedText) {
+        textInput.value = savedText;
+      }
+
+      // テキスト入力時にローカルストレージにデータを保存する
+      textInput.addEventListener("input", function() {
+        localStorage.setItem("card", textInput.value);
+      });
+    });
+  </script>
+</head>
+<body>
+  <textarea id="textInput" rows="30" cols="50"></textarea>
+  <style>
+    .body{
+        text-align: center;
+    }
+  </style>
+</body>
+</html>

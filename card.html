@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    #card-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .card {
+      flex: 0 0 calc(33.33% - 20px);
+      margin: 10px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      cursor: grab;
+    }
+
+    .card:hover {
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .card:active {
+      cursor: grabbing;
+    }
+
+    #add-button {
+      margin: 20px 0;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+  <title>ToDoカードビュー</title>
+</head>
+<body>
+  <button id="add-button">新しいToDoを追加</button>
+  <div id="card-container"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // ローカルストレージからToDoリストを取得
+      const todoList = JSON.parse(localStorage.getItem('todoList')) || [];
+
+      // カードビューのコンテナ
+      const cardContainer = document.getElementById('card-container');
+
+      // ボタン要素
+      const addButton = document.getElementById('add-button');
+
+      // カードを表示する関数
+      function renderCards() {
+        cardContainer.innerHTML = ''; // コンテナをクリア
+
+        todoList.forEach((item, index) => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.draggable = true;
+          card.dataset.index = index;
+
+          card.innerHTML = `<p>${item ? item.text : ''}</p>`; // 修正点
+
+          card.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', index);
+          });
+
+          cardContainer.appendChild(card);
+        });
+      }
+
+      // カードを並び替える関数
+      function handleDragEnd(e) {
+        const fromIndex = e.dataTransfer.getData('text/plain');
+        const toIndex = e.target.dataset.index;
+
+        // 項目の入れ替え
+        const temp = todoList[fromIndex];
+        todoList[fromIndex] = todoList[toIndex];
+        todoList[toIndex] = temp;
+
+        // ローカルストレージに保存
+        localStorage.setItem('todoList', JSON.stringify(todoList));
+
+        // カードを再描画
+        renderCards();
+      }
+
+      // カードをドロップ可能にする
+      cardContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+      });
+
+      cardContainer.addEventListener('drop', handleDragEnd);
+
+      // ボタンクリック時の処理
+      addButton.addEventListener('click', function() {
+        const newText = prompt('新しいToDoを入力してください');
+        if (newText) {
+          // 新しいToDoをリストに追加
+          todoList.push({ text: newText });
+
+          // ローカルストレージに保存
+          localStorage.setItem('todoList', JSON.stringify(todoList));
+
+          // カードを再描画
+          renderCards();
+        }
+      });
+
+      // 初回描画
+      renderCards();
+    });
+  </script>
+</body>
+</html>

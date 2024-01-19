@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ジャーナリング</title>
+    <style>
+        body {
+            margin: 20px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .task-section,
+        .memo-section {
+            margin-top: 20px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            cursor: pointer;
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .edit-input {
+            width: 80%;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>ジャーナリング</h1>
+
+    <div class="task-section">
+        <h2>Task</h2>
+        <ul id="taskList"></ul>
+    </div>
+
+    <div class="memo-section">
+        <h2>Memo</h2>
+        <ul id="memoList"></ul>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            displayTodoList();
+        });
+
+        function displayTodoList() {
+            const todoList = getTodoListFromLocalStorage();
+            const taskListElement = document.getElementById('taskList');
+            const memoListElement = document.getElementById('memoList');
+
+            todoList.forEach(item => {
+                const listItem = createListItemElement(item.text);
+                listItem.addEventListener('dblclick', function () {
+                    confirmDelete(item, listItem);
+                });
+
+                listItem.addEventListener('click', function () {
+                    startEditing(item, listItem);
+                });
+
+                if (item.option === 'task') {
+                    taskListElement.appendChild(listItem);
+                } else if (item.option === 'memo') {
+                    memoListElement.appendChild(listItem);
+                }
+            });
+        }
+
+        function createListItemElement(text) {
+            const liElement = document.createElement('li');
+            liElement.textContent = text;
+            return liElement;
+        }
+
+        function getTodoListFromLocalStorage() {
+            const todoListString = localStorage.getItem('todoList');
+            return todoListString ? JSON.parse(todoListString) : [];
+        }
+
+        function confirmDelete(item, listItem) {
+            const confirmed = confirm(`本当に "${item.text}" を削除しますか？`);
+            if (confirmed) {
+                deleteItemFromLocalStorage(item);
+                listItem.remove();
+            }
+        }
+
+        function deleteItemFromLocalStorage(item) {
+            const todoList = getTodoListFromLocalStorage();
+            const updatedList = todoList.filter(todoItem => todoItem !== item);
+            localStorage.setItem('todoList', JSON.stringify(updatedList));
+        }
+
+        function startEditing(item, listItem) {
+            const originalText = item.text;
+            const inputElement = document.createElement('input');
+            inputElement.classList.add('edit-input');
+            inputElement.value = originalText;
+
+            listItem.textContent = '';
+            listItem.appendChild(inputElement);
+
+            inputElement.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    finishEditing(item, listItem, inputElement.value);
+                } else if (event.key === 'Escape') {
+                    cancelEditing(item, listItem, originalText);
+                }
+            });
+
+            inputElement.focus();
+        }
+
+        function finishEditing(item, listItem, newText) {
+            item.text = newText;
+            listItem.textContent = newText;
+            saveChanges();
+        }
+
+        function cancelEditing(item, listItem, originalText) {
+            listItem.textContent = originalText;
+        }
+
+        function saveChanges() {
+            const taskList = document.getElementById('taskList');
+            const memoList = document.getElementById('memoList');
+
+            const updatedTaskList = Array.from(taskList.children).map(item => ({ text: item.textContent, option: 'task' }));
+            const updatedMemoList = Array.from(memoList.children).map(item => ({ text: item.textContent, option: 'memo' }));
+
+            const updatedTodoList = updatedTaskList.concat(updatedMemoList);
+            localStorage.setItem('todoList', JSON.stringify(updatedTodoList));
+        }
+    </script>
+</body>
+
+</html>

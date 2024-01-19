@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日のタスク</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #taskList,
+        #completedTasks {
+            margin: 20px;
+        }
+
+        .taskContainer {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .taskCheckbox {
+            margin-right: 10px;
+        }
+
+        #completedTasks {
+            margin-top: 20px;
+            border-top: 1px solid black;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 今日のタスク表示エリア -->
+    <div id="taskList">
+        <h2>今日のタスク</h2>
+    </div>
+
+    <!-- 完了済みタスク表示エリア -->
+    <div id="completedTasks">
+        <h2>完了済タスク</h2>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // localStorageからtodoListを取得
+            var todoList = JSON.parse(localStorage.getItem("todoList")) || [];
+
+            console.log("Todo List from localStorage:", todoList);
+
+            // 今日の日付を取得
+            var today = new Date();
+            var yyyy = today.getFullYear();
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var dd = String(today.getDate()).padStart(2, '0');
+            var formattedDate = new Date(yyyy, mm - 1, dd);
+
+            console.log("Today's Date:", formattedDate);
+
+            // optionがtaskかつtask-dateが今日のものをフィルタリング
+            var todayTasks = todoList.filter(function (task) {
+                // task['task-date']が無効な場合は無視
+                if (!task['task-date']) {
+                    return false;
+                }
+
+                // task['task-date']を日本語表記からDateオブジェクトに変換して比較
+                var taskDateParts = task['task-date'].match(/(\d+)年(\d+)月(\d+)日 (\d+):(\d+)/);
+                if (!taskDateParts) {
+                    return false;
+                }
+                var taskDate = new Date(taskDateParts[1], taskDateParts[2] - 1, taskDateParts[3], taskDateParts[4], taskDateParts[5]);
+
+                // 時間情報を無視して比較
+                return task.option === "task" && taskDate.toDateString() === formattedDate.toDateString();
+            });
+
+            console.log("Today's Tasks:", todayTasks);
+
+            // タスク表示エリアの要素を取得
+            var taskListElement = document.getElementById("taskList");
+
+            // 完了済みタスク表示エリアの要素を取得
+            var completedTasksElement = document.getElementById("completedTasks");
+
+            // 結果を表示
+            todayTasks.forEach(function (task) {
+                var taskContainer = document.createElement("div");
+                taskContainer.classList.add("taskContainer");
+
+                var checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.classList.add("taskCheckbox");
+
+                var taskElement = document.createElement("div");
+                taskElement.textContent = task.text; // textに変更
+
+                // チェックボックスの状態が変更されたときの処理
+                checkbox.addEventListener("change", function () {
+                    // ステータスを更新
+                    task.status = checkbox.checked ? "completed" : "incomplete";
+
+                    // ローカルストレージを更新
+                    localStorage.setItem("todoList", JSON.stringify(todoList));
+
+                    // タスクを再描画
+                    updateTaskLists();
+                });
+
+                taskContainer.appendChild(checkbox);
+                taskContainer.appendChild(taskElement);
+
+                taskListElement.appendChild(taskContainer);
+
+                // 新しいコンソールログ
+                console.log("Task Element Created:", taskContainer);
+            });
+
+            // 完了済みタスク表示
+            updateTaskLists();
+
+            // タスクのリストを更新する関数
+            function updateTaskLists() {
+                // 未完了タスクと完了済みタスクを分ける
+                var incompleteTasks = todayTasks.filter(function (task) {
+                    return task.status !== "completed";
+                });
+
+                var completedTasks = todayTasks.filter(function (task) {
+                    return task.status === "completed";
+                });
+
+                // タスク表示エリアの要素を取得
+                var taskListElement = document.getElementById("taskList");
+
+                // 完了済みタスク表示エリアの要素を取得
+                var completedTasksElement = document.getElementById("completedTasks");
+
+                // タスク表示エリアをクリア
+                taskListElement.innerHTML = "";
+
+                // 未完了タスクを表示
+                incompleteTasks.forEach(function (task) {
+                    var taskContainer = document.createElement("div");
+                    taskContainer.classList.add("taskContainer");
+
+                    var checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.classList.add("taskCheckbox");
+                    checkbox.checked = task.status === "completed";
+
+                    var taskElement = document.createElement("div");
+                    taskElement.textContent = task.text;
+
+                    // チェックボックスの状態が変更されたときの処理
+                    checkbox.addEventListener("change", function () {
+                        // ステータスを更新
+                        task.status = checkbox.checked ? "completed" : "incomplete";
+
+                        // ローカルストレージを更新
+                        localStorage.setItem("todoList", JSON.stringify(todoList));
+
+                        // タスクを再描画
+                        updateTaskLists();
+                    });
+
+                    taskContainer.appendChild(checkbox);
+                    taskContainer.appendChild(taskElement);
+
+                    taskListElement.appendChild(taskContainer);
+                });
+
+                // 完了済みタスク表示エリアをクリア
+                completedTasksElement.innerHTML = "";
+
+                // 完了済みタスクを表示
+                completedTasks.forEach(function (completedTask) {
+                    var completedTaskContainer = document.createElement("div");
+                    completedTaskContainer.classList.add("taskContainer");
+
+                    var completedCheckbox = document.createElement("input");
+                    completedCheckbox.type = "checkbox";
+                    completedCheckbox.classList.add("taskCheckbox");
+                    completedCheckbox.checked = true; // 完了済みタスクはデフォルトでチェック
+
+                    var completedTaskElement = document.createElement("div");
+                    completedTaskElement.textContent = completedTask.text;
+
+                    // チェックボックスの状態が変更されたときの処理
+                    completedCheckbox.addEventListener("change", function () {
+                        // ステータスを更新
+                        completedTask.status = completedCheckbox.checked ? "completed" : "incomplete";
+
+                        // ローカルストレージを更新
+                        localStorage.setItem("todoList", JSON.stringify(todoList));
+
+                        // タスクを再描画
+                        updateTaskLists();
+                    });
+
+                    completedTaskContainer.appendChild(completedCheckbox);
+                    completedTaskContainer.appendChild(completedTaskElement);
+
+                    completedTasksElement.appendChild(completedTaskContainer);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

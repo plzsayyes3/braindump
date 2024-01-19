@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Future Card</title>
+  <style>
+    /* 現在のスタイルが入っているCSS */
+
+    .export-container {
+      padding: 20px;
+    }
+
+    .export-section {
+      margin-bottom: 20px;
+    }
+
+    .export-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .export-card {
+      margin-left: 20px;
+    }
+
+    .export-item {
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Future Card</h1>
+  <div class="header">
+    <button class="create-button" onclick="addCard('cardData1')">New Week</button>
+    <button onclick="saveToJSON('cardData1')">保存</button>
+  </div>
+
+  <div class="card-container" id="cardContainer1">
+    <!-- カード要素を追加 (View 1) -->
+  </div>
+
+  <div class="header">
+    <button class="create-button" onclick="addCard('cardData2')">New Month</button>
+    <button onclick="saveToJSON('cardData2')">保存</button>
+  </div>
+
+  <div class="card-container" id="cardContainer2">
+    <!-- カード要素を追加 (View 2) -->
+  </div>
+
+  <div class="header">
+    <button class="create-button" onclick="addCard('cardData3')">New Quarter</button>
+    <button onclick="saveToJSON('cardData3')">保存</button>
+  </div>
+
+  <div class="card-container" id="cardContainer3">
+    <!-- カード要素を追加 (View 3) -->
+  </div>
+
+  <div class="export-container">
+    <div class="export-section" id="exportWeek">
+      <div class="export-title"># Week</div>
+      <div class="export-content" id="exportContentWeek"></div>
+    </div>
+
+    <div class="export-section" id="exportMonth">
+      <div class="export-title"># Month</div>
+      <div class="export-content" id="exportContentMonth"></div>
+    </div>
+
+    <div class="export-section" id="exportQuarter">
+      <div class="export-title"># Quarter</div>
+      <div class="export-content" id="exportContentQuarter"></div>
+    </div>
+  </div>
+
+  <script>
+    // 既存のコード
+
+    function updateExportHTML() {
+      updateExportSection('cardContainer1', 'exportContentWeek', '# Week');
+      updateExportSection('cardContainer2', 'exportContentMonth', '# Month');
+      updateExportSection('cardContainer3', 'exportContentQuarter', '# Quarter');
+    }
+
+    function updateExportSection(containerId, exportContentId, sectionTitle) {
+      const cardContainer = document.getElementById(containerId);
+      const exportContent = document.getElementById(exportContentId);
+
+      exportContent.innerHTML = '';
+      const section = document.createElement('div');
+      section.className = 'export-section';
+      const title = document.createElement('div');
+      title.className = 'export-title';
+      title.textContent = sectionTitle;
+      section.appendChild(title);
+
+      cardContainer.querySelectorAll('.card').forEach(card => {
+        const cardTitle = card.querySelector('.title').textContent;
+        const cardItems = card.querySelector('.combined-text').value.split('\n');
+
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'export-card';
+        const cardTitleDiv = document.createElement('div');
+        cardTitleDiv.textContent = `## ${cardTitle}`;
+        cardDiv.appendChild(cardTitleDiv);
+
+        cardItems.forEach(item => {
+          if (item.trim() !== '') {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'export-item';
+            itemDiv.textContent = item;
+            cardDiv.appendChild(itemDiv);
+          }
+        });
+
+        section.appendChild(cardDiv);
+      });
+
+      exportContent.appendChild(section);
+    }
+
+    // 既存のコード
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCards('cardData1', 'cardContainer1');
+      loadCards('cardData2', 'cardContainer2');
+      loadCards('cardData3', 'cardContainer3');
+      updateExportHTML(); // 追加
+    });
+
+    // 既存のコード
+  </script>
+</body>
+</html>

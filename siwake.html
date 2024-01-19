@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIWAKE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-image: url('https://images.unsplash.com/photo-1682686581220-689c34afb6ef?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            color: #181941;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        #displayContainer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            border: 2px solid #fff;
+            background-color: rgba(255, 255, 255, 0.8); /* 半透明の白色背景 */
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #displayArea {
+            margin-bottom: 20px;
+        }
+        button, a {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="displayContainer">
+        <div id="displayArea"></div>
+        <button onclick="selectOption('task')">Task</button>
+        <button onclick="selectOption('memo')">memo</button>
+        <button onclick="selectOption('skip')">Skip</button>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        let todoList;
+        // ローカルストレージからデータを取得
+        function fetchData() {
+            const data = localStorage.getItem('todoList');
+            todoList = data ? JSON.parse(data) : [];
+        }
+        // 表示するデータを取得
+        function getNextItem() {
+            while (currentIndex < todoList.length && todoList[currentIndex].option) {
+                currentIndex++;
+            }
+            if (currentIndex < todoList.length) {
+                return todoList[currentIndex++];
+            }
+            return null;
+        }
+        // 表示を更新
+        function updateDisplay() {
+            const displayArea = document.getElementById('displayArea');
+            const item = getNextItem();
+            if (item) {
+                displayArea.innerHTML = `<p>${item.text}</p>`;
+            } else {
+                displayArea.innerHTML = `<p>表示する項目がありません。</p>`;
+                document.getElementById('gtd2mdLink').style.display = 'block';
+            }
+        }
+        // 選択したオプションに属性を与えて表示更新
+        function selectOption(option) {
+            const selectedItem = todoList[currentIndex - 1];
+            if (selectedItem) {
+                // "skip" の場合は option プロパティを設定しない
+                if (option !== 'skip') {
+                    selectedItem.option = option;
+                }
+                updateLocalStorage(); // ローカルストレージを更新
+            }
+            updateDisplay();
+        }
+        // ローカルストレージを更新
+        function updateLocalStorage() {
+            localStorage.setItem('todoList', JSON.stringify(todoList));
+        }
+        window.onload = function () {
+            fetchData();
+            updateDisplay();
+        };
+    </script>
+</body>
+</html>
