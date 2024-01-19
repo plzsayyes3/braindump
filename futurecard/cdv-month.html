@@ -38,17 +38,17 @@
       // データがあればカードを生成して表示する
       if (savedText) {
         const lines = savedText.split('\n');
-        let isInWeekSection = false; // Weekセクション内かどうかのフラグ
+        let isInMonthSection = false; // Monthセクション内かどうかのフラグ
         let currentCard = null;
 
         for (const line of lines) {
-          if (line.startsWith("# Week")) {
-            isInWeekSection = true;
-          } else if (line.startsWith("# Month")) {
-            // Monthセクションまで来たら処理を終了
+          if (line.startsWith("# Month")) {
+            isInMonthSection = true;
+          } else if (line.startsWith("# Quater")) {
+            // Quaterセクションまで来たら処理を終了
             break;
-          } else if (isInWeekSection && line.startsWith("## ")) {
-            // Weekセクション内の"## "で始まる行がカードの開始
+          } else if (isInMonthSection && line.startsWith("## ")) {
+            // Monthセクション内の"## "で始まる行がカードの開始
             if (currentCard !== null) {
               cardsContainer.appendChild(currentCard);
             }
