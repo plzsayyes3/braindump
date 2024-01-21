@@ -50,6 +50,11 @@
       border-radius: 6px;
       box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
     }
+
+    /* 編集モードのスタイル */
+    .editing {
+      border: 2px solid #4285f4; /* 編集中のカードのボーダー色 */
+    }
   </style>
 </head>
 <body>
@@ -60,10 +65,8 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      // ローカルストレージからデータを読み込む
       const savedText = localStorage.getItem("card");
 
-      // カードがあれば３つの段に振り分けて表示
       if (savedText) {
         const lines = savedText.split('\n');
         let isInWeekSection = false;
@@ -74,60 +77,52 @@
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
 
-          // １段目の処理
           if (!isInMonthSection && !isInQuaterSection && line.startsWith("# Week")) {
             isInWeekSection = true;
             currentContainer = document.getElementById("cardsContainer1");
           } else if (isInWeekSection && line.startsWith("## ")) {
             const titleLine = line;
             const contentLines = [];
-            // ## の次の行から次のセクションまでを取得
             for (let j = i + 1; j < lines.length; j++) {
               const contentLine = lines[j];
               if (contentLine.startsWith("## ") || contentLine.startsWith("# Month") || contentLine.startsWith("# Quater")) {
-                break; // 次のセクションまで終了
+                break;
               }
               contentLines.push(contentLine);
             }
             appendCard(currentContainer, titleLine, contentLines.join('\n'));
           } else if (line.startsWith("# Month")) {
-            // Monthセクションまで来たら処理を終了
             isInWeekSection = false;
           }
 
-          // ２段目の処理
           if (!isInMonthSection && !isInQuaterSection && line.startsWith("# Month")) {
             isInMonthSection = true;
             currentContainer = document.getElementById("cardsContainer2");
           } else if (isInMonthSection && line.startsWith("## ")) {
             const titleLine = line;
             const contentLines = [];
-            // ## の次の行から次のセクションまでを取得
             for (let j = i + 1; j < lines.length; j++) {
               const contentLine = lines[j];
               if (contentLine.startsWith("## ") || contentLine.startsWith("# Quater")) {
-                break; // 次のセクションまで終了
+                break;
               }
               contentLines.push(contentLine);
             }
             appendCard(currentContainer, titleLine, contentLines.join('\n'));
           } else if (line.startsWith("# Quater")) {
-            // Quaterセクションまで来たら処理を終了
             isInMonthSection = false;
           }
 
-          // ３段目の処理
           if (!isInWeekSection && !isInMonthSection && line.startsWith("# Quater")) {
             isInQuaterSection = true;
             currentContainer = document.getElementById("cardsContainer3");
           } else if (isInQuaterSection && line.startsWith("## ")) {
             const titleLine = line;
             const contentLines = [];
-            // ## の次の行から次のセクションまでを取得
             for (let j = i + 1; j < lines.length; j++) {
               const contentLine = lines[j];
               if (contentLine.startsWith("## ") || contentLine.startsWith("# Month") || contentLine.startsWith("# Quater")) {
-                break; // 次のセクションまで終了
+                break;
               }
               contentLines.push(contentLine);
             }
@@ -139,18 +134,91 @@
       function appendCard(container, titleLine, contentText) {
         const card = document.createElement("div");
         card.classList.add("card");
-
-        // タイトル部分の作成
-        const title = document.createElement("h2");
-        title.textContent = titleLine.substring(3).trim();
-        card.appendChild(title);
-
-        // カードの中身の作成
-        const content = document.createElement("pre");
-        content.textContent = contentText.trim();
-        card.appendChild(content);
+        card.innerHTML = `<h2>${titleLine.substring(3).trim()}</h2><pre>${contentText.trim()}</pre>`;
+        
+        card.addEventListener("dblclick", function() {
+          startEditing(card);
+        });
 
         container.appendChild(card);
+      }
+
+      function startEditing(card) {
+        // 編集モード開始
+        card.classList.add("editing");
+
+        // カードの内容をtextareaに置き換え
+        const title = card.querySelector("h2");
+        const content = card.querySelector("pre");
+        const titleText = title.textContent.trim();
+        const contentText = content.textContent.trim();
+        title.innerHTML = `<input type="text" value="${titleText}" class="edit-title">`;
+        content.innerHTML = `<textarea class="edit-content">${contentText}</textarea>`;
+
+        // イベントリスナーを登録
+        const titleInput = card.querySelector(".edit-title");
+        const contentTextarea = card.querySelector(".edit-content");
+
+        titleInput.addEventListener("keydown", function(event) {
+          // Enterキーが押されたら編集を終了
+          if (event.key === "Enter") {
+            finishEditing(card);
+          }
+        });
+
+        contentTextarea.addEventListener("keydown", function(event) {
+          // Enterキーが押されても編集を終了しない
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+          }
+        });
+
+        // カード外のクリックで編集終了
+        document.addEventListener("click", function(event) {
+          if (!card.contains(event.target)) {
+            finishEditing(card);
+          }
+        });
+      }
+
+      function finishEditing(card) {
+        // 編集モード終了
+        card.classList.remove("editing");
+
+        // 編集内容を取得
+        const titleInput = card.querySelector(".edit-title");
+        const contentTextarea = card.querySelector(".edit-content");
+        const newTitle = titleInput.value;
+        const newContent = contentTextarea.value;
+
+        // タイトルとコンテンツを元に戻す
+        const title = card.querySelector("h2");
+        const content = card.querySelector("pre");
+        title.textContent = newTitle;
+        content.textContent = newContent;
+
+        // ローカルストレージに保存
+        saveToLocalStorage();
+      }
+
+      function saveToLocalStorage() {
+        const cardsContainer1 = document.getElementById("cardsContainer1");
+        const cardsContainer2 = document.getElementById("cardsContainer2");
+        const cardsContainer3 = document.getElementById("cardsContainer3");
+
+        const cards1 = Array.from(cardsContainer1.getElementsByClassName("card"));
+        const cards2 = Array.from(cardsContainer2.getElementsByClassName("card"));
+        const cards3 = Array.from(cardsContainer3.getElementsByClassName("card"));
+
+        const allCards = [...cards1, ...cards2, ...cards3];
+
+        const cardData = allCards.map(card => {
+          const title = card.querySelector("h2").textContent.trim();
+          const content = card.querySelector("pre").textContent.trim();
+          return `## ${title}\n${content}`;
+        }).join('\n');
+
+        localStorage.setItem("card", cardData);
       }
     });
   </script>
