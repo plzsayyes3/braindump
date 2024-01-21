@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Card Viewer</title>
   <style>
-    /* 共通のスタイル */
     .cardsContainer {
       display: flex;
       flex-wrap: nowrap;
@@ -15,90 +14,59 @@
     }
 
     .card {
+      border: 1px solid #ccc;
       padding: 10px;
       margin-right: 10px;
-      width: 300px;
-      min-height: 150px;
+      max-width: 300px; /* 例として横幅を600pxに固定 */
       flex: 0 0 auto;
-      border-radius: 10px;
-      box-shadow: 5px 5px 5px #bfc8c7e0;
-      background-color: #e8f2f198; /* デフォルトの背景色 */
     }
 
-    .card h2 {
+    h1, h2 {
       margin-top: 0;
-    }
-
-    /* スクロールバーのスタイル */
-    .cardsContainer::-webkit-scrollbar {
-      width: 12px;
-    }
-
-    .cardsContainer::-webkit-scrollbar-thumb {
-      background-color: #587dc33f;
-      border-radius: 6px;
-      border: 0px solid #ffffff;
-    }
-
-    .cardsContainer::-webkit-scrollbar-track {
-      background-color: #ffffff;
-      border-radius: 6px;
-      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
 <body>
-  <!-- ３つの段のカードコンテナ -->
-  <div class="cardsContainer" id="cardsContainer1"></div>
-  <div class="cardsContainer" id="cardsContainer2"></div>
-  <div class="cardsContainer" id="cardsContainer3"></div>
+  <div class="cardsContainer" id="cardsContainer"></div>
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       // ローカルストレージからデータを読み込む
       const savedText = localStorage.getItem("card");
+      const cardsContainer = document.getElementById("cardsContainer");
 
-      // カードがあれば３つの段に振り分けて表示
+      // データがあればカードを生成して表示する
       if (savedText) {
         const lines = savedText.split('\n');
-        let isInWeekSection = false;
-        let isInMonthSection = false;
-        let isInQuaterSection = false;
+        let isInQuaterSection = false; // Quaterセクション内かどうかのフラグ
+        let currentCard = null;
 
         for (const line of lines) {
-          // １段目の処理
-          if (!isInMonthSection && !isInQuaterSection && line.startsWith("# Week")) {
-            appendCard("cardsContainer1", line);
-          } else if (line.startsWith("# Month")) {
-            // Monthセクションまで来たら処理を終了
-            isInWeekSection = false;
-            break;
-          }
+          if (line.startsWith("# Quater")) {
+            isInQuaterSection = true;
+          } else if (isInQuaterSection && line.startsWith("## ")) {
+            // Quaterセクション内の"## "で始まる行がカードの開始
+            if (currentCard !== null) {
+              cardsContainer.appendChild(currentCard);
+            }
 
-          // ２段目の処理
-          if (!isInWeekSection && !isInQuaterSection && line.startsWith("# Month")) {
-            appendCard("cardsContainer2", line);
-          } else if (line.startsWith("# Quater")) {
-            // Quaterセクションまで来たら処理を終了
-            isInMonthSection = false;
-            break;
-          }
-
-          // ３段目の処理
-          if (!isInWeekSection && !isInMonthSection && line.startsWith("# Quater")) {
-            appendCard("cardsContainer3", line);
+            currentCard = document.createElement("div");
+            currentCard.classList.add("card");
+            const title = document.createElement("h2");
+            title.textContent = line.substring(3).trim();
+            currentCard.appendChild(title);
+          } else if (currentCard) {  // nullでない場合にのみ実行
+            // カードの中身にテキストを追加
+            const paragraph = document.createElement("p");
+            paragraph.textContent = line;
+            currentCard.appendChild(paragraph);
           }
         }
-      }
 
-      function appendCard(containerId, line) {
-        const container = document.getElementById(containerId);
-        const card = document.createElement("div");
-        card.classList.add("card");
-        const title = document.createElement("h2");
-        title.textContent = line.substring(3).trim();
-        card.appendChild(title);
-        container.appendChild(card);
+        // 最後のカードを表示
+        if (currentCard !== null) {
+          cardsContainer.appendChild(currentCard);
+        }
       }
     });
   </script>

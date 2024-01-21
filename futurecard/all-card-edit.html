@@ -14,6 +14,33 @@
       margin: 0 auto; /* 中央寄せのために追加 */
     }
 
+    .cardsContainer1 {
+      background-color: #858fe998;
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      white-space: nowrap;
+      margin: 0 auto; /* 中央寄せのために追加 */
+    }
+
+    .cardsContainer2 {
+      background-color: #87ddd598;
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      white-space: nowrap;
+      margin: 0 auto; /* 中央寄せのために追加 */
+    }
+
+    .cardsContainer3 {
+      background-color: #cd90e798;
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      white-space: nowrap;
+      margin: 0 auto; /* 中央寄せのために追加 */
+    }
+
     .card {
       padding: 10px;
       margin-right: 10px;
@@ -30,8 +57,8 @@
     }
 
     .card pre {
-      margin: 0; /* pre要素内の余白を無効にする */
-      white-space: pre-wrap; /* 改行を維持し、はみ出た場合は折り返す */
+      margin: 0;
+      white-space: pre-wrap;
     }
 
     /* スクロールバーのスタイル */
@@ -50,18 +77,13 @@
       border-radius: 6px;
       box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
     }
-
-    /* 編集モードのスタイル */
-    .editing {
-      border: 2px solid #4285f4; /* 編集中のカードのボーダー色 */
-    }
   </style>
 </head>
 <body>
   <!-- ３つの段のカードコンテナ -->
-  <div class="cardsContainer" id="cardsContainer1"></div>
-  <div class="cardsContainer" id="cardsContainer2"></div>
-  <div class="cardsContainer" id="cardsContainer3"></div>
+  <div class="cardsContainer1" id="cardsContainer1"></div>
+  <div class="cardsContainer2" id="cardsContainer2"></div>
+  <div class="cardsContainer3" id="cardsContainer3"></div>
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
