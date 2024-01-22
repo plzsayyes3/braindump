@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Export Data</title>
+</head>
+<body>
+  <textarea id="exportTextArea" rows="10" cols="50"></textarea>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // ローカルストレージからlCardを取得
+      const lCardJson = localStorage.getItem("lCard");
+
+      if (lCardJson) {
+        const lCardData = JSON.parse(lCardJson);
+        const textArray = lCardData.map(item => `- ${item.text}`);
+        const exportText = textArray.join('\n');
+
+        // テキストエリアに表示
+        document.getElementById("exportTextArea").value = exportText;
+      } else {
+        alert("No data found in local storage.");
+      }
+    });
+  </script>
+</body>
+</html>
