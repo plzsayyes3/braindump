@@ -3,246 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Card Viewer</title>
+  <title>Editable Cards</title>
   <style>
-    /* 共通のスタイル */
-    .cardsContainer {
+    .card-container {
       display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      white-space: nowrap;
-      margin: 0 auto; /* 中央寄せのために追加 */
+      flex-direction: column;
+      margin: 10px;
     }
 
-    .cardsContainer1 {
-      background-color: #858fe998;
+    .card-row {
       display: flex;
-      flex-wrap: nowrap;
       overflow-x: auto;
       white-space: nowrap;
-      margin: 0 auto; /* 中央寄せのために追加 */
-    }
-
-    .cardsContainer2 {
-      background-color: #87ddd598;
-      display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      white-space: nowrap;
-      margin: 0 auto; /* 中央寄せのために追加 */
-    }
-
-    .cardsContainer3 {
-      background-color: #cd90e798;
-      display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      white-space: nowrap;
-      margin: 0 auto; /* 中央寄せのために追加 */
     }
 
     .card {
-      padding: 10px;
-      margin-right: 10px;
-      width: 300px;
-      min-height: 150px;
-      flex: 0 0 auto;
-      border-radius: 10px;
-      box-shadow: 5px 5px 5px #bfc8c7e0;
-      background-color: #e8f2f198; /* デフォルトの背景色 */
-    }
-
-    .card h2 {
-      margin-top: 0;
-    }
-
-    .card pre {
-      margin: 0;
+      display: -jinline-block;
       white-space: pre-wrap;
-    }
-
-    /* スクロールバーのスタイル */
-    .cardsContainer::-webkit-scrollbar {
-      width: 12px;
-    }
-
-    .cardsContainer::-webkit-scrollbar-thumb {
-      background-color: #587dc33f;
-      border-radius: 6px;
-      border: 0px solid #ffffff;
-    }
-
-    .cardsContainer::-webkit-scrollbar-track {
+      width: 300px;
+      min-height: 100px;
+      overflow: auto;
+      border-radius: 10px;
+      flex-shrink: 0;
       background-color: #ffffff;
-      border-radius: 6px;
-      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+      position: relative;
+      box-shadow: inset;
+      word-wrap: break-word;
+      margin : 10px;
+      padding: 10px;
+    }
+    
+
+
+    .card.editable {
+      border: 2px solid #007BFF;
+    }
+
+    .card textarea {
+      width: 100%;
+      height: 100%;
+      resize: none;
+      border: none;
+      outline: none;
+    }
+
+
+    /* 1段目のスタイル */
+    #weekCardsContainer {
+      background-color: #f4ffea80;
+    }
+    
+    /* 2段目のスタイル */
+    #monthCardsContainer {
+      background-color: #f5eaff7b;
+    }
+    
+    /* 3段目のスタイル */
+    #quaterCardsContainer {
+      background-color: #f5f1ff79;
     }
   </style>
 </head>
 <body>
-  <!-- ３つの段のカードコンテナ -->
-  <div class="cardsContainer1" id="cardsContainer1"></div>
-  <div class="cardsContainer2" id="cardsContainer2"></div>
-  <div class="cardsContainer3" id="cardsContainer3"></div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const savedText = localStorage.getItem("card");
+<div class="card-container">
+  <h4>Week Cards</h4>
+  <div class="card-row" id="weekCardsContainer"></div>
+</div>
 
-      if (savedText) {
-        const lines = savedText.split('\n');
-        let isInWeekSection = false;
-        let isInMonthSection = false;
-        let isInQuaterSection = false;
-        let currentContainer = null;
+<div class="card-container">
+  <h4>Month Cards</h4>
+  <div class="card-row" id="monthCardsContainer"></div>
+</div>
 
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
+<div class="card-container">
+  <h4>Quater Cards</h4>
+  <div class="card-row" id="quaterCardsContainer"></div>
+</div>
 
-          if (!isInMonthSection && !isInQuaterSection && line.startsWith("# Week")) {
-            isInWeekSection = true;
-            currentContainer = document.getElementById("cardsContainer1");
-          } else if (isInWeekSection && line.startsWith("## ")) {
-            const titleLine = line;
-            const contentLines = [];
-            for (let j = i + 1; j < lines.length; j++) {
-              const contentLine = lines[j];
-              if (contentLine.startsWith("## ") || contentLine.startsWith("# Month") || contentLine.startsWith("# Quater")) {
-                break;
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function displayCards(containerId, cardData) {
+    if (cardData) {
+      var cardsData = cardData.split('##').map(function(card) {
+        return card.trim();
+      });
+
+      var container = document.getElementById(containerId);
+      var cardRow = document.createElement('div');
+      cardRow.classList.add('card-row');
+
+      cardsData.forEach(function(cardData) {
+        if (cardData !== '') {
+          var cardTitle = cardData.split('\n')[0];
+          var cardContent = cardData.substring(cardTitle.length).trim();
+
+          var cardElement = document.createElement('div');
+          cardElement.classList.add('card');
+
+          // タイトルが ## で始まるように改行を追加
+          cardTitle = cardTitle ? '\n' + cardTitle : cardTitle;
+
+          cardElement.innerHTML = '<h2>' + cardTitle + '</h2><p>' + cardContent.replace(/\n/g, '<br>') + '</p>';
+          
+          // ダブルクリックで編集モード開始
+          cardElement.addEventListener('dblclick', function() {
+            cardElement.classList.add('editable');
+            var textArea = document.createElement('textarea');
+            textArea.value = cardContent;
+            cardElement.innerHTML = '';
+            cardElement.appendChild(textArea);
+
+            // Escキーで編集モード終了
+            textArea.addEventListener('keydown', function(event) {
+              if (event.key === 'Escape') {
+                cardElement.classList.remove('editable');
+                cardContent = textArea.value;
+                cardElement.innerHTML = '<h2>' + cardTitle + '</h2><p>' + cardContent.replace(/\n/g, '<br>') + '</p>';
+
+             // 編集終了時にローカルストレージに反映
+                cardsData[cardsData.indexOf(cardData)] = '\n' + cardTitle + '\n' + cardContent;
+                localStorage.setItem(containerId.replace('CardsContainer', 'card'), cardsData.join('## '));
               }
-              contentLines.push(contentLine);
-            }
-            appendCard(currentContainer, titleLine, contentLines.join('\n'));
-          } else if (line.startsWith("# Month")) {
-            isInWeekSection = false;
-          }
+            });
+          });
 
-          if (!isInMonthSection && !isInQuaterSection && line.startsWith("# Month")) {
-            isInMonthSection = true;
-            currentContainer = document.getElementById("cardsContainer2");
-          } else if (isInMonthSection && line.startsWith("## ")) {
-            const titleLine = line;
-            const contentLines = [];
-            for (let j = i + 1; j < lines.length; j++) {
-              const contentLine = lines[j];
-              if (contentLine.startsWith("## ") || contentLine.startsWith("# Quater")) {
-                break;
-              }
-              contentLines.push(contentLine);
-            }
-            appendCard(currentContainer, titleLine, contentLines.join('\n'));
-          } else if (line.startsWith("# Quater")) {
-            isInMonthSection = false;
-          }
-
-          if (!isInWeekSection && !isInMonthSection && line.startsWith("# Quater")) {
-            isInQuaterSection = true;
-            currentContainer = document.getElementById("cardsContainer3");
-          } else if (isInQuaterSection && line.startsWith("## ")) {
-            const titleLine = line;
-            const contentLines = [];
-            for (let j = i + 1; j < lines.length; j++) {
-              const contentLine = lines[j];
-              if (contentLine.startsWith("## ") || contentLine.startsWith("# Month") || contentLine.startsWith("# Quater")) {
-                break;
-              }
-              contentLines.push(contentLine);
-            }
-            appendCard(currentContainer, titleLine, contentLines.join('\n'));
-          }
+          cardRow.appendChild(cardElement);
         }
-      }
+      });
 
-      function appendCard(container, titleLine, contentText) {
-        const card = document.createElement("div");
-        card.classList.add("card");
-        card.innerHTML = `<h2>${titleLine.substring(3).trim()}</h2><pre>${contentText.trim()}</pre>`;
-        
-        card.addEventListener("dblclick", function() {
-          startEditing(card);
-        });
+      container.appendChild(cardRow);
+    } else {
+      console.log('ローカルストレージに ' + containerId + ' が見つかりません。');
+    }
+  }
 
-        container.appendChild(card);
-      }
+  // 初回表示
+  displayCards('weekCardsContainer', localStorage.getItem('weekcard'));
+  displayCards('monthCardsContainer', localStorage.getItem('monthcard'));
+  displayCards('quaterCardsContainer', localStorage.getItem('quatercard'));
+});
+</script>
 
-      function startEditing(card) {
-        // 編集モード開始
-        card.classList.add("editing");
-
-        // カードの内容をtextareaに置き換え
-        const title = card.querySelector("h2");
-        const content = card.querySelector("pre");
-        const titleText = title.textContent.trim();
-        const contentText = content.textContent.trim();
-        title.innerHTML = `<input type="text" value="${titleText}" class="edit-title">`;
-        content.innerHTML = `<textarea class="edit-content">${contentText}</textarea>`;
-
-        // イベントリスナーを登録
-        const titleInput = card.querySelector(".edit-title");
-        const contentTextarea = card.querySelector(".edit-content");
-
-        titleInput.addEventListener("keydown", function(event) {
-          // Enterキーが押されたら編集を終了
-          if (event.key === "Enter") {
-            finishEditing(card);
-          }
-        });
-
-        contentTextarea.addEventListener("keydown", function(event) {
-          // Enterキーが押されても編集を終了しない
-          if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-          }
-        });
-
-        // カード外のクリックで編集終了
-        document.addEventListener("click", function(event) {
-          if (!card.contains(event.target)) {
-            finishEditing(card);
-          }
-        });
-      }
-
-      function finishEditing(card) {
-        // 編集モード終了
-        card.classList.remove("editing");
-
-        // 編集内容を取得
-        const titleInput = card.querySelector(".edit-title");
-        const contentTextarea = card.querySelector(".edit-content");
-        const newTitle = titleInput.value;
-        const newContent = contentTextarea.value;
-
-        // タイトルとコンテンツを元に戻す
-        const title = card.querySelector("h2");
-        const content = card.querySelector("pre");
-        title.textContent = newTitle;
-        content.textContent = newContent;
-
-        // ローカルストレージに保存
-        saveToLocalStorage();
-      }
-
-      function saveToLocalStorage() {
-        const cardsContainer1 = document.getElementById("cardsContainer1");
-        const cardsContainer2 = document.getElementById("cardsContainer2");
-        const cardsContainer3 = document.getElementById("cardsContainer3");
-
-        const cards1 = Array.from(cardsContainer1.getElementsByClassName("card"));
-        const cards2 = Array.from(cardsContainer2.getElementsByClassName("card"));
-        const cards3 = Array.from(cardsContainer3.getElementsByClassName("card"));
-
-        const allCards = [...cards1, ...cards2, ...cards3];
-
-        const cardData = allCards.map(card => {
-          const title = card.querySelector("h2").textContent.trim();
-          const content = card.querySelector("pre").textContent.trim();
-          return `## ${title}\n${content}`;
-        }).join('\n');
-
-        localStorage.setItem("card", cardData);
-      }
-    });
-  </script>
 </body>
 </html>

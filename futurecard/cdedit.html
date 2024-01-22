@@ -8,77 +8,81 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // ページ読み込み時にローカルストレージからデータを読み込む
-            const savedText = localStorage.getItem("card");
-            const textInput = document.getElementById("textInput");
+            const savedWeekCard = localStorage.getItem("weekcard");
+            const savedMonthCard = localStorage.getItem("monthcard");
+            const savedQuaterCard = localStorage.getItem("quatercard");
+
+            const weekCardInput = document.getElementById("weekCardInput");
+            const monthCardInput = document.getElementById("monthCardInput");
+            const quaterCardInput = document.getElementById("quaterCardInput");
 
             // ローカルストレージに保存されたデータがあれば表示する
-            if (savedText) {
-                textInput.value = savedText;
+            if (savedWeekCard) {
+                weekCardInput.value = savedWeekCard;
+            }
+
+            if (savedMonthCard) {
+                monthCardInput.value = savedMonthCard;
+            }
+
+            if (savedQuaterCard) {
+                quaterCardInput.value = savedQuaterCard;
             }
 
             // テキスト入力時にローカルストレージにデータを保存する
-            textInput.addEventListener("input", function () {
-                localStorage.setItem("card", textInput.value);
+            weekCardInput.addEventListener("input", function () {
+                localStorage.setItem("weekcard", weekCardInput.value);
+            });
+
+            monthCardInput.addEventListener("input", function () {
+                localStorage.setItem("monthcard", monthCardInput.value);
+            });
+
+            quaterCardInput.addEventListener("input", function () {
+                localStorage.setItem("quatercard", quaterCardInput.value);
             });
         });
     </script>
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh; /* 画面の高さいっぱいに表示 */
-            margin: 0; /* ボディの余白をなくす */
-            padding: 0;
-            background-image: url('https://images.unsplash.com/photo-1705411394725-9f76e0979e4b?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
-            background-size: cover;
-            background-position: center;
-            height: 100vh;
-            flex-direction: column;
-            color: #fff;
-        }
-
-        #textInput {
-            width: 50%;
-            height: 500px;
-            margin-bottom: 20px;
-            background-color: rgba(255, 255, 255, 0.6); /* 半透明の白い背景 */
-            border: none; /* 枠をなくす */
-            padding: 10px; /* テキストと背景の間隔を追加 */
-            resize: none; /* リサイズを禁止 */
-        }
+        /* Add your styles here */
     </style>
 </head>
 
 <body>
-    <textarea id="textInput" rows="10" cols="30"></textarea>
+    <textarea id="weekCardInput" rows="30" cols="30"></textarea>
+    <textarea id="monthCardInput" rows="30" cols="30"></textarea>
+    <textarea id="quaterCardInput" rows="30" cols="30"></textarea>
+
+    <!-- Additional text areas or details can be added as needed -->
+
     <details>
         <summary>フォーマット</summary>
         <textarea id="story" name="story" rows="5" cols="33">
-            # Week
-            ## 1/15-1/21
-            中身
-            ## 1/22-1/27
-            中身
-            ## 1/28-2/4
-            - 中身
-            ## 2/5-2/11
-            - 中身
-            # Month
-            ## 3月
-            - 中身
-            ## 4月
-            - 中身
-            # Quater
-            ## 4-6月
-            - 中身
-            ## 7-9月
-            - 中身
-            ## 10-12月
-            - 中身
-            ## 1-3月
-            - 中身
-        </textarea>
+## 1/15-1/21
+中身
+## 1/22-1/27
+中身
+## 1/28-2/4
+- 中身
+## 2/5-2/11
+- 中身
+</textarea>
+<textarea id="story" name="story" rows="5" cols="33">
+  ## 3月
+  - 編集
+  ## 4月
+  - 中身 
+</textarea>
+<textarea id="story" name="story" rows="5" cols="33">
+  ## 4-6月
+  - 中身
+  ## 7-9月
+  - 中身
+  ## 10-12月
+  - 中身
+  ## 1-3月
+  - 中身
+</textarea>
     </details>
 </body>
 
