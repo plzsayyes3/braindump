@@ -11,6 +11,7 @@
 <div id="combinedcard">
     <h1>Combined</h1>
     <textarea id="combinedContent" rows="20" cols="50"></textarea>
+    <button id="updateButton">Update Combined Content</button>
 </div>
 
 <script>
@@ -57,6 +58,23 @@ function displayContent(textareaId, content) {
         // コンテンツがない場合はメッセージを表示
         textarea.value = "コンテンツがありません。";
     }
+}
+
+// ボタンがクリックされたときに実行される関数
+document.getElementById("updateButton").addEventListener("click", function() {
+    updateCombinedContent();
+});
+
+function updateCombinedContent() {
+    const weekData = localStorage.getItem("weekcard");
+    const monthData = localStorage.getItem("monthcard");
+    const quaterData = localStorage.getItem("quatercard");
+
+    // Combine all data
+    const combinedData = combineContent(weekData, monthData, quaterData);
+
+    // Display combined data in the textarea
+    displayContent("combinedContent", combinedData);
 }
 </script>
 

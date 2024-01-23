@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Editable Cards</title>
   <style>
+
     .body{
       background-image: url('https://images.unsplash.com/photo-1682686581220-689c34afb6ef?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
       background-size: cover;
@@ -24,7 +25,7 @@
     }
 
     .card {
-      display: -jinline-block;
+      display: inline-block;
       white-space: pre-wrap;
       width: 300px;
       min-height: 100px;
@@ -126,10 +127,13 @@ document.addEventListener('DOMContentLoaded', function() {
               if (event.key === 'Escape') {
                 cardElement.classList.remove('editable');
                 cardContent = textArea.value;
+                // 改行を追加
+                cardContent = '\n' + cardContent;
+                // cardElement.innerHTMLを設定
                 cardElement.innerHTML = '<h2>' + cardTitle + '</h2><p>' + cardContent.replace(/\n/g, '<br>') + '</p>';
 
              // 編集終了時にローカルストレージに反映
-                cardsData[cardsData.indexOf(cardData)] = '\n' + cardTitle + '\n' + cardContent;
+                cardsData[cardsData.indexOf(cardData)] = cardTitle + cardContent;
                 localStorage.setItem(containerId.replace('CardsContainer', 'card'), cardsData.join('## '));
               }
             });
@@ -150,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
   displayCards('monthCardsContainer', localStorage.getItem('monthcard'));
   displayCards('quaterCardsContainer', localStorage.getItem('quatercard'));
 });
+
 </script>
 
 </body>
