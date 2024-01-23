@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighten Mind</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+
+        }
+
+        .menu {
+            display: flex;
+            justify-content: center; /* メニューボタンを水平方向に中央揃え */
+            align-items: center; /* メニューボタンを垂直方向に中央揃え */
+            height: 50px; /* メニューエリアの高さを設定 */
+            background-color: #333; /* メニューエリアの背景色を設定 */
+        }
+
+        .menu ul {
+            display: flex;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .menu li {
+            margin-right: 10px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #fff;
+            background-color: #919191;
+            border-radius: 5px;
+        }
+
+        .menu a:hover {
+            background-color: #555;
+        }
+
+        .content {
+            overflow: auto;
+            height: 100vh;
+        }
+
+        #contentFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+    <script>
+        function changeIframeSrc(src) {
+            document.getElementById('contentFrame').src = src;
+        }
+    </script>
+</head>
+<body>
+
+    <!-- メニューエリア -->
+    <div class="menu">
+        <!-- ここにメニューのコンテンツを配置 -->
+        <ul>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('entry.html')">Journaring</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('siwake.html')">sorting</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('md.html')">Export MD</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('adddate.html')">add DATE</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('today.html')">DAYS</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('outliner.html')">outline</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('futurecard.html')">future card</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('card.html')">card</a></li>
+
+        </ul>
+    </div>
+
+    <!-- コンテンツエリア -->
+    <div class="content">
+        <!-- ここに別のHTMLを埋め込む -->
+        <iframe id="contentFrame" src="entry.html" frameborder="0"></iframe>
+    </div>
+
+</body>
+</html>
