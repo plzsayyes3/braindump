@@ -9,15 +9,16 @@
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-
+            display: flex;
         }
 
         .menu {
             display: flex;
-            justify-content: center; /* メニューボタンを水平方向に中央揃え */
-            align-items: center; /* メニューボタンを垂直方向に中央揃え */
-            height: 50px; /* メニューエリアの高さを設定 */
-            background-color: #333; /* メニューエリアの背景色を設定 */
+            justify-content: center;
+            align-items: center;
+            height: 50px;
+            background-color: #333;
+            z-index: 2;
         }
 
         .menu ul {
@@ -29,11 +30,13 @@
 
         .menu li {
             margin-right: 10px;
+            text-align: center;
+            padding: 0;
         }
 
         .menu a {
             display: block;
-            padding: 10px;
+            padding: 0;
             text-decoration: none;
             color: #fff;
             background-color: #919191;
@@ -47,6 +50,57 @@
         .content {
             overflow: auto;
             height: 100vh;
+            flex-grow: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 250px;
+            background-color: #333;
+            padding-top: 50px;
+            box-shadow: -5px 0 5px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .drawer ul {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .drawer li {
+            margin-bottom: 10px;
+        }
+
+        .drawer a {
+            text-align: center;
+            padding-left: 10px;
+            padding-right: 10px;
+            text-decoration: none;
+            color: #fff;
+            background-color: #919191;
+            border-radius: 5px;
+        }
+
+        .drawer a:hover {
+            background-color: #555;
+        }
+
+        .drawer + .content {
+            margin-right: 100px;
+        }
+        
+        .exportTextArea{
+            width: 100%;
+            box-sizing: border-box;
         }
 
         #contentFrame {
@@ -54,31 +108,62 @@
             height: 100%;
             border: none;
         }
-    </style>
-    <script>
-        function changeIframeSrc(src) {
-            document.getElementById('contentFrame').src = src;
+        .drawer.collapsed {
+            width: 0;
+            padding: 0;
         }
-    </script>
-</head>
-<body>
 
-    <!-- メニューエリア -->
-    <div class="menu">
-        <!-- ここにメニューのコンテンツを配置 -->
-        <ul>
-            <li><a href="javascript:void(0);" onclick="changeIframeSrc('main.html')">entry</a></li>
-            <li><a href="javascript:void(0);" onclick="changeIframeSrc('gridv.html')">Card</a></li>
-            <li><a href="javascript:void(0);" onclick="changeIframeSrc('exp.html')">Export</a></li>
+        .drawer.collapsed ul {
+            display: none;
+        }
+        </style>
+        <script>
+            function toggleDrawer() {
+                var drawer = document.querySelector('.drawer');
+                drawer.classList.toggle('collapsed');
+            }
+    
+            function changeIframeSrc(src) {
+                document.getElementById('contentFrame').src = src;
+            }
+    
+            document.addEventListener("DOMContentLoaded", function () {
+                // ローカルストレージからlCardを取得
+                const lCardJson = localStorage.getItem("lCard");
+    
+                if (lCardJson) {
+                    const lCardData = JSON.parse(lCardJson);
+                    const textArray = lCardData.map(item => `- ${item.text}`);
+                    const exportText = textArray.join('\n');
+    
+                    // テキストエリアに表示
+                    document.getElementById("exportTextArea").value = exportText;
+                } else {
+                    alert("No data found in local storage.");
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <!-- サイドメニューエリア -->
+        <div class="drawer">
+            <ul>
+                <li><a href="javascript:void(0);" onclick="changeIframeSrc('main.html')">entry</a></li>
+                <li><a href="javascript:void(0);" onclick="changeIframeSrc('gridv.html')">Card</a></li>
+                <li><a href="javascript:void(0);" onclick="changeIframeSrc('exp.html')">Export</a></li>
+                <br>
+                <textarea id="exportTextArea" rows="30" cols="30"></textarea>
+            </ul>
+        </div>
+    
 
-        </ul>
-    </div>
-
-    <!-- コンテンツエリア -->
-    <div class="content">
-        <!-- ここに別のHTMLを埋め込む -->
-        <iframe id="contentFrame" src="main.html" frameborder="0"></iframe>
-    </div>
-
-</body>
-</html>
+        <!-- 切り替えボタン -->
+        <button onclick="toggleDrawer()">三</button>
+    
+        <!-- コンテンツエリア -->
+        <div class="content">
+            <iframe id="contentFrame" src="main.html" frameborder="0"></iframe>
+        </div>
+    </body>
+    </html>
+    
