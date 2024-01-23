@@ -25,23 +25,23 @@
       border-radius: 9px;
       padding: 10px;
       margin: 3%;
-      width: 200px; /* カードの横幅を固定 */
+      width: 200px;
       background-color: aliceblue;
-      cursor: grab; /* カーソルを掴み取る形状に設定 */
-      user-select: none; /* ユーザーのテキスト選択を無効化 */
+      cursor: grab;
+      user-select: none;
     }
 
     .card.selected {
-      border: 2px solid red;
+      border: 5px solid rgb(255, 255, 255);
     }
 
     #drawer {
       position: fixed;
       top: 0;
-      left: -300px; /* 初期状態では非表示 */
+      left: -300px;
       width: 250px;
       height: 100%;
-      background-color: #f1f1f1d2;
+      background-color: #f1f1f1fb;
       padding: 20px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       transition: left 0.3s ease;
@@ -49,11 +49,12 @@
 
     #drawer button {
       margin-top: 0px;
-      padding: 10px;
-      background-color: #5e5e65;
+      padding: 5px;
+      background-color: #7d7a6ccb;
       color: white;
       border: none;
       cursor: pointer;
+      border-radius: 10px;
     }
 
     #drawer textarea {
@@ -64,17 +65,39 @@
 
     #openDrawerButton {
       position: sticky;
-      margin-top: 3px;
-      left: 50px;
-      background-color: #322553c8;
+      margin-top: 20px;
+      left: 20px;
+      background-color: #533725c8;
       color: white;
       border: none;
-      padding: 10px;
+      padding: 5px;
       cursor: pointer;
+      border-radius: 15px;
     }
 
     #deleteButton {
       background-color: #ff3333;
+    }
+
+    #blueButton {
+      margin-top: 10px;
+      padding: 5px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    #pinkButton {
+      margin-top: 10px;
+      margin-left: 10px;
+      padding: 5px;
+      background-color: #e91e63;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
@@ -83,59 +106,41 @@
   <button id="openDrawerButton">Open</button>
 
   <div id="drawer">
-    <button id="closeDrawer">Close Drawer</button>
+    <button id="closeDrawer">Close</button>
     <textarea id="inputText" placeholder="Enter text here..."></textarea>
-    <button id="saveButton">Save Data</button>
-    <button id="mergeButton">Merge Selected</button>
-    <button id="deleteButton">Delete Selected</button>
+    <button id="saveButton">Save</button>
+    <button id="mergeButton">Merge</button>
+    <button id="deleteButton">Del</button>
+    <button id="blueButton">Blue</button>
+    <button id="pinkButton">Pink</button>
   </div>
 
   <div id="grid-container" class="sortable"></div>
 
   <script>
     function saveDataAndUpdateView() {
-      const inputText = document.getElementById('inputText').value;
+      const cards = document.querySelectorAll('.card');
+      const cardData = Array.from(cards).map(card => {
+        return {
+          text: card.textContent,
+          createdDate: new Date().toISOString(),
+          color: card.dataset.color || '', // カードのデータ属性から色情報を取得
+        };
+      });
 
-      if (inputText.trim() !== "") {
-        // 入力されたテキストを改行で分割
-        const items = inputText.split('\n').map(item => item.trim().replace(/^-\s*/, ''));
-
-        // 既存のデータを取得
-        let existingData = localStorage.getItem('lCard');
-        existingData = existingData ? JSON.parse(existingData) : [];
-
-        // 新しいデータにcreatedDateを追加
-        const newDataArray = items.map(item => {
-          return {
-            text: item,
-            createdDate: new Date().toISOString()
-          };
-        });
-
-        // 新しいデータを既存のデータに追加
-        existingData = existingData.concat(newDataArray);
-
-        // ローカルストレージに保存
-        localStorage.setItem('lCard', JSON.stringify(existingData));
-
-        // テキストエリアをクリア
-        document.getElementById('inputText').value = "";
-
-        // カードビューを更新
-        updateCardView(existingData);
-      }
+      localStorage.setItem('lCard', JSON.stringify(cardData));
     }
 
     function updateCardView(data) {
       const gridContainer = document.getElementById("grid-container");
-      gridContainer.innerHTML = ""; // カードビューをクリア
+      gridContainer.innerHTML = "";
 
       data.forEach((card, index) => {
         const cardElement = document.createElement("div");
         cardElement.classList.add("card");
         cardElement.textContent = card.text;
+        cardElement.style.backgroundColor = card.color; // 背景色を設定
 
-        // カードを選択/解除するトグル処理
         cardElement.addEventListener("click", function() {
           cardElement.classList.toggle("selected");
         });
@@ -143,17 +148,16 @@
         gridContainer.appendChild(cardElement);
       });
 
-      // ソート可能なリストとして初期化
       new Sortable(gridContainer, {
         animation: 150,
         handle: '.card',
         onEnd: function (evt) {
-          // カードの順序が変更されたら順序を保存
           const updatedData = [];
           gridContainer.childNodes.forEach((cardElement, index) => {
             const text = cardElement.textContent;
             const createdDate = new Date().toISOString();
-            updatedData.push({ text, createdDate });
+            const color = cardElement.style.backgroundColor; // 背景色を取得
+            updatedData.push({ text, createdDate, color });
           });
 
           localStorage.setItem('lCard', JSON.stringify(updatedData));
@@ -166,30 +170,23 @@
 
       if (selectedCards.length > 1) {
         const mergedText = Array.from(selectedCards).map(card => card.textContent).join('\n');
-
-        // 新しいデータにcreatedDateを追加
         const newData = {
           text: mergedText,
-          createdDate: new Date().toISOString()
+          createdDate: new Date().toISOString(),
+          color: '', // デフォルトはブランク
         };
 
-        // 既存のデータを取得
         let existingData = localStorage.getItem('lCard');
         existingData = existingData ? JSON.parse(existingData) : [];
 
-        // 選択されたカードを削除
         selectedCards.forEach(card => {
           const cardText = card.textContent;
           existingData = existingData.filter(existingCard => existingCard.text !== cardText);
         });
 
-        // 新しいデータを既存のデータに追加
         existingData.push(newData);
 
-        // ローカルストレージに保存
         localStorage.setItem('lCard', JSON.stringify(existingData));
-
-        // カードビューを更新
         updateCardView(existingData);
       } else {
         alert("Please select at least two cards to merge.");
@@ -200,20 +197,15 @@
       const selectedCards = document.querySelectorAll(".card.selected");
 
       if (selectedCards.length > 0) {
-        // 既存のデータを取得
         let existingData = localStorage.getItem('lCard');
         existingData = existingData ? JSON.parse(existingData) : [];
 
-        // 選択されたカードを削除
         selectedCards.forEach(card => {
           const cardText = card.textContent;
           existingData = existingData.filter(existingCard => existingCard.text !== cardText);
         });
 
-        // ローカルストレージに保存
         localStorage.setItem('lCard', JSON.stringify(existingData));
-
-        // カードビューを更新
         updateCardView(existingData);
       } else {
         alert("Please select at least one card to delete.");
@@ -229,25 +221,38 @@
       const openDrawerButton = document.getElementById("openDrawerButton");
 
       openDrawerButton.addEventListener("click", function () {
-        drawer.style.left = "0"; // ドロワーメニューを表示
+        drawer.style.left = "0";
       });
 
       closeDrawerButton.addEventListener("click", function () {
-        drawer.style.left = "-300px"; // ドロワーメニューを非表示にする
+        drawer.style.left = "-300px";
       });
 
       saveButton.addEventListener("click", saveDataAndUpdateView);
       mergeButton.addEventListener("click", mergeSelectedCards);
       deleteButton.addEventListener("click", deleteSelectedCards);
 
-      document.addEventListener("keydown", function (event) {
-        // Mac で Command キーが押されているかつEnterキーが押された場合に保存を実行
-        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-          saveDataAndUpdateView();
-        }
+      const blueButton = document.getElementById("blueButton");
+      const pinkButton = document.getElementById("pinkButton");
+
+      blueButton.addEventListener("click", function () {
+        setCardColor("#A6CCF5"); // 青
       });
 
-      // ローカルストレージからlCardを取得
+      pinkButton.addEventListener("click", function () {
+        setCardColor("#FFCEE0"); // ピンク
+      });
+
+      function setCardColor(color) {
+        const selectedCards = document.querySelectorAll(".card.selected");
+        selectedCards.forEach(card => {
+          card.style.backgroundColor = color;
+          card.dataset.color = color;
+        });
+
+        saveDataAndUpdateView();
+      }
+
       const lCardJson = localStorage.getItem("lCard");
 
       if (lCardJson) {
