@@ -7,6 +7,7 @@
 </head>
 <body>
   <textarea id="exportTextArea" rows="10" cols="50"></textarea>
+  <button id="copyButton">Copy to Clipboard</button>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -20,6 +21,14 @@
 
         // テキストエリアに表示
         document.getElementById("exportTextArea").value = exportText;
+
+        // コピーボタンにクリックイベントを追加
+        document.getElementById("copyButton").addEventListener("click", function () {
+          // テキストエリアのテキストをクリップボードにコピー
+          document.getElementById("exportTextArea").select();
+          document.execCommand("copy");
+          alert("Text copied to clipboard!");
+        });
       } else {
         alert("No data found in local storage.");
       }

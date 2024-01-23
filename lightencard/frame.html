@@ -22,16 +22,16 @@
         }
 
         .menu ul {
-            display: flex;
-            padding: 0;
-            margin: 0;
+            display: block;
+            justify-content: center;
             list-style: none;
         }
 
         .menu li {
             margin-right: 10px;
             text-align: center;
-            padding: 0;
+            padding: 10px;
+            margin: 10px;
         }
 
         .menu a {
@@ -60,7 +60,7 @@
             top: 0;
             right: 0;
             height: 100%;
-            width: 250px;
+            width: 350px;
             background-color: #333;
             padding-top: 50px;
             box-shadow: -5px 0 5px rgba(0, 0, 0, 0.2);
@@ -72,13 +72,17 @@
         }
 
         .drawer ul {
+            display: flex;
             padding: 0;
             margin: 0;
             list-style: none;
         }
 
         .drawer li {
-            margin-bottom: 10px;
+            text-align: center;
+            display: block;
+            border: 0;
+            margin: 5%;
         }
 
         .drawer a {
@@ -102,6 +106,8 @@
         .exportTextArea{
             text-align: center;
             padding-right: 10px;
+            width: 100%;  /* 横幅を100%に設定 */
+            height: 300px; /* 高さ */
         }
 
         #contentFrame {
@@ -118,7 +124,9 @@
 
         .drawer.collapsed ul {
             display: none;
+            text-align: center;
         }
+
     </style>
     <script>
         function toggleDrawer() {
@@ -151,16 +159,16 @@
     <!-- サイドメニューエリア -->
     <div class="drawer collapsed">
         <ul>
-            <li><a href="javascript:void(0);" onclick="changeIframeSrc('main.html')">entry</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('main.html')">Entry</a></li>
             <li><a href="javascript:void(0);" onclick="changeIframeSrc('gridv.html')">Card</a></li>
             <li><a href="javascript:void(0);" onclick="changeIframeSrc('exp.html')">Export</a></li>
-            <br>
-            <textarea id="exportTextArea" rows="30" cols="30"></textarea>
         </ul>
+            <br>
+            <textarea id="exportTextArea" rows="30" cols="50"></textarea>
     </div>
 
     <!-- 切り替えボタン -->
-    <button onclick="toggleDrawer()">三</button>
+    <button onclick="toggleDrawer()"><=></button>
 
     <!-- コンテンツエリア -->
     <div class="content">
