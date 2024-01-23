@@ -65,6 +65,7 @@
             padding-top: 50px;
             box-shadow: -5px 0 5px rgba(0, 0, 0, 0.2);
             z-index: 2;
+            /* 初めから折りたたまれた状態にする */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -99,8 +100,8 @@
         }
         
         .exportTextArea{
-            width: 100%;
-            box-sizing: border-box;
+            text-align: center;
+            padding-right: 10px;
         }
 
         #contentFrame {
@@ -111,59 +112,59 @@
         .drawer.collapsed {
             width: 0;
             padding: 0;
+            /* 折りたたまれた状態のスタイル */
+            display: none;
         }
 
         .drawer.collapsed ul {
             display: none;
         }
-        </style>
-        <script>
-            function toggleDrawer() {
-                var drawer = document.querySelector('.drawer');
-                drawer.classList.toggle('collapsed');
-            }
-    
-            function changeIframeSrc(src) {
-                document.getElementById('contentFrame').src = src;
-            }
-    
-            document.addEventListener("DOMContentLoaded", function () {
-                // ローカルストレージからlCardを取得
-                const lCardJson = localStorage.getItem("lCard");
-    
-                if (lCardJson) {
-                    const lCardData = JSON.parse(lCardJson);
-                    const textArray = lCardData.map(item => `- ${item.text}`);
-                    const exportText = textArray.join('\n');
-    
-                    // テキストエリアに表示
-                    document.getElementById("exportTextArea").value = exportText;
-                } else {
-                    alert("No data found in local storage.");
-                }
-            });
-        </script>
-    </head>
-    <body>
-        <!-- サイドメニューエリア -->
-        <div class="drawer">
-            <ul>
-                <li><a href="javascript:void(0);" onclick="changeIframeSrc('main.html')">entry</a></li>
-                <li><a href="javascript:void(0);" onclick="changeIframeSrc('gridv.html')">Card</a></li>
-                <li><a href="javascript:void(0);" onclick="changeIframeSrc('exp.html')">Export</a></li>
-                <br>
-                <textarea id="exportTextArea" rows="30" cols="30"></textarea>
-            </ul>
-        </div>
-    
+    </style>
+    <script>
+        function toggleDrawer() {
+            var drawer = document.querySelector('.drawer');
+            drawer.classList.toggle('collapsed');
+        }
 
-        <!-- 切り替えボタン -->
-        <button onclick="toggleDrawer()">三</button>
-    
-        <!-- コンテンツエリア -->
-        <div class="content">
-            <iframe id="contentFrame" src="main.html" frameborder="0"></iframe>
-        </div>
-    </body>
-    </html>
-    
+        function changeIframeSrc(src) {
+            document.getElementById('contentFrame').src = src;
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // ローカルストレージからlCardを取得
+            const lCardJson = localStorage.getItem("lCard");
+
+            if (lCardJson) {
+                const lCardData = JSON.parse(lCardJson);
+                const textArray = lCardData.map(item => `- ${item.text}`);
+                const exportText = textArray.join('\n');
+
+                // テキストエリアに表示
+                document.getElementById("exportTextArea").value = exportText;
+            } else {
+                alert("No data found in local storage.");
+            }
+        });
+    </script>
+</head>
+<body>
+    <!-- サイドメニューエリア -->
+    <div class="drawer collapsed">
+        <ul>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('main.html')">entry</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('gridv.html')">Card</a></li>
+            <li><a href="javascript:void(0);" onclick="changeIframeSrc('exp.html')">Export</a></li>
+            <br>
+            <textarea id="exportTextArea" rows="30" cols="30"></textarea>
+        </ul>
+    </div>
+
+    <!-- 切り替えボタン -->
+    <button onclick="toggleDrawer()">三</button>
+
+    <!-- コンテンツエリア -->
+    <div class="content">
+        <iframe id="contentFrame" src="main.html" frameborder="0"></iframe>
+    </div>
+</body>
+</html>
