@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON to PDF</title>
+    <!-- Include required libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+    <script>
+        // Sample JSON data
+        const cardData1 = {
+            "title": ["Title1", "Title2", "Title3"],
+            "items": [
+                ["Data1-1", "Data1-2", "Data1-3"],
+                ["Data2-1", "Data2-2", "Data2-3"],
+                // Add more rows as needed
+            ]
+        };
+
+        const cardData2 = {
+            "title": ["TitleA", "TitleB", "TitleC"],
+            "items": [
+                ["DataA-1", "DataA-2", "DataA-3"],
+                ["DataB-1", "DataB-2", "DataB-3"],
+                // Add more rows as needed
+            ]
+        };
+
+        const cardData3 = {
+            "title": ["TitleX", "TitleY", "TitleZ"],
+            "items": [
+                ["DataX-1", "DataX-2", "DataX-3"],
+                ["DataY-1", "DataY-2", "DataY-3"],
+                // Add more rows as needed
+            ]
+        };
+
+        // Function to convert JSON data to HTML table
+        function jsonToTable(jsonData) {
+            let table = '<table border="1">';
+            table += '<tr><th>' + jsonData.title.join('</th><th>') + '</th></tr>';
+            for (const row of jsonData.items) {
+                table += '<tr><td>' + row.join('</td><td>') + '</td></tr>';
+            }
+            table += '</table>';
+            return table;
+        }
+
+        // Function to convert HTML to PDF
+        function htmlToPdf(html) {
+            const pdf = new jsPDF();
+            pdf.fromHTML(html, 15, 15);
+            pdf.save('output.pdf');
+        }
+
+        // Convert each JSON data to HTML table and then to PDF
+        const htmlTable1 = jsonToTable(cardData1);
+        htmlToPdf(htmlTable1);
+
+        const htmlTable2 = jsonToTable(cardData2);
+        htmlToPdf(htmlTable2);
+
+        const htmlTable3 = jsonToTable(cardData3);
+        htmlToPdf(htmlTable3);
+    </script>
+
+</body>
+</html>
