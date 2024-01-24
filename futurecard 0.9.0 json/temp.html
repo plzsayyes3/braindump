@@ -1,55 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    .dropdown {
-      position: relative;
-      display: inline-block;
-    }
-
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      top: 100%;
-      background-color: #f9f9f9;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-      z-index: 1;
-    }
-
-    .dropdown:hover .dropdown-content {
-      display: block;
-    }
-
-    .dropdown-item {
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-      color: #333;
-    }
-
-    .dropdown-item:hover {
-      background-color: #ddd;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Example</title>
 </head>
 <body>
+    <div id="outputContainer"></div>
 
-<div class="dropdown">
-  <span>メニュー</span>
-  <div class="dropdown-content">
-    <a href="#" class="dropdown-item">項目1</a>
-    <a href="#" class="dropdown-item">項目2</a>
-    <a href="#" class="dropdown-item">項目3</a>
-  </div>
-</div>
+    <script>
+        const cardData1 = JSON.parse(localStorage.getItem('cardData1')) || [];
+        const cardData2 = JSON.parse(localStorage.getItem('cardData2')) || [];
+        const cardData3 = JSON.parse(localStorage.getItem('cardData3')) || [];
 
+        const groupedData = {
+            "# Week": cardData1,
+            "# Month": cardData2,
+            "# Quarter": cardData3
+        };
+
+        const outputContainer = document.getElementById('outputContainer');
+
+        for (const [groupTitle, cards] of Object.entries(groupedData)) {
+            // Create h2 element for group title
+            const groupTitleElement = document.createElement('h2');
+            groupTitleElement.textContent = groupTitle;
+            outputContainer.appendChild(groupTitleElement);
+
+            cards.forEach((card, index) => {
+                // Create h3 element for card title
+                const titleElement = document.createElement('h3');
+                titleElement.textContent = card.title;
+                outputContainer.appendChild(titleElement);
+
+                // Create Markdown formatted text for items
+                const itemsMarkdown = card.items.map(item => `${item}`).join('\n');
+
+                // Create pre element for code block
+                const codeElement = document.createElement('pre');
+                codeElement.textContent = itemsMarkdown;
+
+                // Append code element to output container
+                outputContainer.appendChild(codeElement);
+            });
+        }
+    </script>
 </body>
 </html>
