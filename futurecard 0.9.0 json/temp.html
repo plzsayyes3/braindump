@@ -6,44 +6,104 @@
     <title>LocalStorage Example</title>
 </head>
 <body>
+    <textarea id="mdInput" rows="10" cols="50" placeholder="Enter Markdown text here"></textarea>
+    <button onclick="saveMarkdown()">Save and Display</button>
     <div id="outputContainer"></div>
 
     <script>
-        const cardData1 = JSON.parse(localStorage.getItem('cardData1')) || [];
-        const cardData2 = JSON.parse(localStorage.getItem('cardData2')) || [];
-        const cardData3 = JSON.parse(localStorage.getItem('cardData3')) || [];
+        function saveMarkdown() {
+            const mdInput = document.getElementById('mdInput').value;
 
-        const groupedData = {
-            "# Week": cardData1,
-            "# Month": cardData2,
-            "# Quarter": cardData3
-        };
+            // Split Markdown text into sections based on '##' headings
+            const sections = mdInput.split(/^##\s+/m).filter(Boolean);
 
-        const outputContainer = document.getElementById('outputContainer');
+            // Create JSON objects for each section
+            const cardData1 = JSON.parse(localStorage.getItem('cardData1')) || [];
+            const cardData2 = JSON.parse(localStorage.getItem('cardData2')) || [];
+            const cardData3 = JSON.parse(localStorage.getItem('cardData3')) || [];
 
-        for (const [groupTitle, cards] of Object.entries(groupedData)) {
-            // Create h2 element for group title
-            const groupTitleElement = document.createElement('h2');
-            groupTitleElement.textContent = groupTitle;
-            outputContainer.appendChild(groupTitleElement);
+            sections.forEach((section, index) => {
+                const lines = section.split('\n');
+                const title = lines.shift().trim();
 
-            cards.forEach((card, index) => {
-                // Create h3 element for card title
-                const titleElement = document.createElement('h3');
-                titleElement.textContent = card.title;
-                outputContainer.appendChild(titleElement);
+                // Skip if the title starts with '# ' (h1)
+                if (title.startsWith('# ')) {
+                    return;
+                }
 
-                // Create Markdown formatted text for items
-                const itemsMarkdown = card.items.map(item => `${item}`).join('\n');
+                const items = lines.map(item => item.trim()).filter(Boolean);
 
-                // Create pre element for code block
-                const codeElement = document.createElement('pre');
-                codeElement.textContent = itemsMarkdown;
+                const card = { title, items };
 
-                // Append code element to output container
-                outputContainer.appendChild(codeElement);
+                // Find and update existing card if the title matches
+                const updateExistingCard = (existingCardData) => {
+                    const existingCard = existingCardData.find(existing => existing.title === title);
+                    if (existingCard) {
+                        existingCard.items = items;
+                    } else {
+                        existingCardData.push(card);
+                    }
+                };
+
+                if (index % 3 === 0) {
+                    updateExistingCard(cardData1);
+                } else if (index % 3 === 1) {
+                    updateExistingCard(cardData2);
+                } else {
+                    updateExistingCard(cardData3);
+                }
             });
+
+            // Save updated JSON objects to local storage
+            localStorage.setItem('cardData1', JSON.stringify(cardData1));
+            localStorage.setItem('cardData2', JSON.stringify(cardData2));
+            localStorage.setItem('cardData3', JSON.stringify(cardData3));
+
+            // Display the saved data
+            displayData();
         }
+
+        function displayData() {
+            const cardData1 = JSON.parse(localStorage.getItem('cardData1')) || [];
+            const cardData2 = JSON.parse(localStorage.getItem('cardData2')) || [];
+            const cardData3 = JSON.parse(localStorage.getItem('cardData3')) || [];
+
+            const groupedData = {
+                "# Week": cardData1,
+                "# Month": cardData2,
+                "# Quarter": cardData3
+            };
+
+            const outputContainer = document.getElementById('outputContainer');
+            outputContainer.innerHTML = ''; // Clear previous content
+
+            for (const [groupTitle, cards] of Object.entries(groupedData)) {
+                // Create h2 element for group title
+                const groupTitleElement = document.createElement('h2');
+                groupTitleElement.textContent = groupTitle;
+                outputContainer.appendChild(groupTitleElement);
+
+                cards.forEach((card, index) => {
+                    // Create h3 element for card title
+                    const titleElement = document.createElement('h3');
+                    titleElement.textContent = card.title;
+                    outputContainer.appendChild(titleElement);
+
+                    // Create Markdown formatted text for items
+                    const itemsMarkdown = card.items.map(item => `${item}`).join('\n');
+
+                    // Create pre element for code block
+                    const codeElement = document.createElement('pre');
+                    codeElement.textContent = itemsMarkdown;
+
+                    // Append code element to output container
+                    outputContainer.appendChild(codeElement);
+                });
+            }
+        }
+
+        // Display data on initial load
+        displayData();
     </script>
 </body>
 </html>
