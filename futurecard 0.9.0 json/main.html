@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Future Card</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .header {
+      background-color: #94c2e0;
+      padding: 10px;
+    }
+
+    .create-button {
+      background-color: #618095;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .card-container {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 20px;
+      gap: 10px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .card {
+      min-width: 250px;
+      background-color: #ddf6ff;
+      border-radius: 8px;
+      padding: 10px;
+      box-sizing: border-box;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .title,
+    .list-container {
+      cursor: pointer;
+    }
+
+    .editable {
+      padding: 5px;
+      margin: 5px 0;
+    }
+
+    .list-item {
+      padding: 5px 0;
+    }
+
+    .combined-text {
+      width: 100%;
+      box-sizing: content-box;
+      margin-bottom: 10px;
+      border: none;
+      background-color: #ddf6ff;
+      height: auto;
+    }
+    .textarea {
+      min-height: 40px;
+    }
+
+    .preview-mode {
+      display: none;
+    }
+
+    .selected-card {
+      border: 2px solid #ff6347;
+    }
+
+    /* ドロップダウンメニュー関連のスタイル */
+    .dropdown {
+      display: inline-block;
+      position: relative;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+
+    .dropdown.active .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-content a {
+      color: #333;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <!-- ドロップダウンメニュー -->
+    <div class="dropdown" id="menuDropdown">
+      <button class="create-button" onclick="toggleMenu()">+</button>
+      <div class="dropdown-content">
+        <a href="#" onclick="menuAction1()">メニューアイテム1</a>
+        <a href="#" onclick="menuAction2()">メニューアイテム2</a>
+        <!-- 別のメニューアイテムを追加できます -->
+      </div>
+    </div>
+
+    <div class="header">
+      <button class="create-button" onclick="addCard('cardData1')">New Week</button>
+      <button onclick="saveToJSON('cardData1')">保存</button>
+    </div>
+  </div>
+
+  <div class="card-container" id="cardContainer1">
+    <!-- カード要素を追加 (View 1) -->
+  </div>
+
+  <div class="header">
+    <button class="create-button" onclick="addCard('cardData2')">New Month</button>
+    <button onclick="saveToJSON('cardData2')">保存</button>
+  </div>
+
+  <div class="card-container" id="cardContainer2">
+    <!-- カード要素を追加 (View 2) -->
+  </div>
+
+  <div class="header">
+    <button class="create-button" onclick="addCard('cardData3')">New Quarter</button>
+    <button onclick="saveToJSON('cardData3')">保存</button>
+  </div>
+
+  <div class="card-container" id="cardContainer3">
+    <!-- カード要素を追加 (View 3) -->
+  </div>
+
+
+  <script>
+    // 初回起動時にJSONデータを読み込む
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCards('cardData1', 'cardContainer1');
+      loadCards('cardData2', 'cardContainer2');
+      loadCards('cardData3', 'cardContainer3');
+    });
+
+    function addCard(storageKey) {
+      const cardContainer = document.getElementById(`cardContainer${storageKey.slice(-1)}`);
+
+      const newCard = document.createElement('div');
+      const newId = new Date().getTime();
+      newCard.className = 'card';
+      newCard.setAttribute('data-id', newId);
+
+      const title = document.createElement('div');
+      title.className = 'title editable';
+      title.textContent = 'New Card Title';
+      title.setAttribute('contenteditable', 'true');
+      title.addEventListener('input', () => saveContent(title, newId, storageKey));
+
+      const combinedText = document.createElement('textarea');
+      combinedText.className = 'combined-text editable';
+      combinedText.textContent = 'New Item';
+      combinedText.setAttribute('contenteditable', 'true');
+      combinedText.addEventListener('input', () => saveContent(combinedText, newId, storageKey));
+      
+      newCard.appendChild(title);
+      newCard.appendChild(combinedText);
+
+      // カードを選択できるようにするためのイベントリスナーを追加
+      newCard.addEventListener('click', () => selectCard(newCard));
+
+      cardContainer.appendChild(newCard);
+    }
+
+    function loadCards(storageKey, containerId) {
+      const cardContainer = document.getElementById(containerId);
+      const savedData = localStorage.getItem(storageKey);
+
+      if (savedData) {
+        const cards = JSON.parse(savedData);
+        cards.forEach(cardData => {
+          addCardToContainer(cardData, cardContainer);
+        });
+      } else {
+        // デフォルトのカードを表示
+        addCardToContainer(null, cardContainer, storageKey);
+      }
+    }
+
+    function addCardToContainer(data, container, storageKey) {
+      const newCard = document.createElement('div');
+      const newId = data ? data.id : new Date().getTime();
+      newCard.className = 'card';
+      newCard.setAttribute('data-id', newId);
+
+      const title = document.createElement('div');
+      title.className = 'title editable';
+      title.textContent = data ? data.title : 'New Card Title';
+      title.setAttribute('contenteditable', 'true');
+      title.addEventListener('input', () => saveContent(title, newId, storageKey));
+
+      const combinedText = document.createElement('textarea');
+      combinedText.className = 'combined-text editable';
+      combinedText.textContent = data ? data.items.join('\n') : 'New Item';
+      combinedText.setAttribute('contenteditable', 'true');
+      combinedText.addEventListener('input', () => saveContent(combinedText, newId, storageKey));
+      
+      newCard.appendChild(title);
+      newCard.appendChild(combinedText);
+
+      // カードを選択できるようにするためのイベントリスナーを追加
+      newCard.addEventListener('click', () => selectCard(newCard));
+
+      container.appendChild(newCard);
+    }
+
+    function enterEditMode(element) {
+      element.setAttribute('contenteditable', 'true');
+      element.classList.add('editable');
+      element.focus();
+    }
+
+    function saveContent(element, id, storageKey) {
+      // データをJSONに保存する処理を追加
+      saveToJSON(storageKey);
+    }
+
+    function saveToJSON(storageKey) {
+      const cardContainer = document.getElementById(`cardContainer${storageKey.slice(-1)}`);
+      const cards = [];
+
+      cardContainer.querySelectorAll('.card').forEach(card => {
+        const cardData = {
+          id: card.getAttribute('data-id'),
+          title: card.querySelector('.title').textContent,
+          items: card.querySelector('.combined-text').value.split('\n')
+        };
+        cards.push(cardData);
+      });
+
+      const jsonData = JSON.stringify(cards);
+      console.log(jsonData);
+
+      // ローカルストレージにデータを保存
+      localStorage.setItem(storageKey, jsonData);
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        const editableElement = document.querySelector('.editable[contenteditable="true"]');
+        if (editableElement) {
+          if (event.shiftKey) {
+            // シフトキーが押されている場合はプレビューモードに切り替え
+            enterPreviewMode();
+          } else {
+            editableElement.blur();
+          }
+        }
+      }
+    }
+
+    function enterPreviewMode() {
+      const cardContainer = document.querySelector('.card-container');
+      cardContainer.querySelectorAll('.editable').forEach(element => {
+        element.classList.add('preview-mode');
+      });
+    }
+
+    function exitPreviewMode() {
+      const cardContainer = document.querySelector('.card-container');
+      cardContainer.querySelectorAll('.editable').forEach(element => {
+        element.classList.remove('preview-mode');
+      });
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    // カードコンテナにドラッグ関連の処理を追加
+    const cardContainers = document.querySelectorAll('.card-container');
+
+    cardContainers.forEach(cardContainer => {
+      cardContainer.addEventListener('wheel', (event) => {
+        // マウスホイールの動きに合わせて横にスクロール
+        cardContainer.scrollLeft += event.deltaY;
+        // イベントのデフォルトのスクロールを無効化
+        event.preventDefault();
+      });
+
+      // ドラッグ開始時にドラッグ中のカードを選択状態にする
+      cardContainer.addEventListener('mousedown', (event) => {
+        const isCard = event.target.classList.contains('card');
+        if (isCard) {
+          selectCard(event.target);
+        }
+      });
+
+      // ドラッグ中のカードコンテナの挙動
+      let isDragging = false;
+      let startX;
+      let scrollLeft;
+
+      cardContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.pageX - cardContainer.offsetLeft;
+        scrollLeft = cardContainer.scrollLeft;
+
+        // ドラッグ中のカードコンテナにクラスを付与
+        cardContainer.classList.add('dragging');
+      });
+
+      cardContainer.addEventListener('mouseleave', () => {
+        // マウスがカードコンテナを離れたらドラッグ終了
+        isDragging = false;
+        cardContainer.classList.remove('dragging');
+      });
+
+      cardContainer.addEventListener('mouseup', () => {
+        // ドラッグ終了
+        isDragging = false;
+        cardContainer.classList.remove('dragging');
+      });
+
+      cardContainer.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - cardContainer.offsetLeft;
+        const walk = (x - startX) * 2; // スクロール速度の調整
+
+        // ドラッグ中のスクロール処理
+        cardContainer.scrollLeft = scrollLeft - walk;
+      });
+    });
+
+    function selectCard(selectedCard) {
+      // すべてのカードから選択状態を解除
+      document.querySelectorAll('.card').forEach(card => {
+        card.classList.remove('selected-card');
+      });
+
+      // クリックされたカードに選択状態を付与
+      selectedCard.classList.add('selected-card');
+      
+    }
+
+    function toggleMenu() {
+      const menuDropdown = document.getElementById('menuDropdown');
+      menuDropdown.classList.toggle('active');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      background-color: #f9f9f9;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      color: #333;
+    }
+
+    .dropdown-item:hover {
+      background-color: #ddd;
+    }
+  </style>
+</head>
+<body>
+
+<div class="dropdown">
+  <span>メニュー</span>
+  <div class="dropdown-content">
+    <a href="#" class="dropdown-item">項目1</a>
+    <a href="#" class="dropdown-item">項目2</a>
+    <a href="#" class="dropdown-item">項目3</a>
+  </div>
+</div>
+
+</body>
+</html>
