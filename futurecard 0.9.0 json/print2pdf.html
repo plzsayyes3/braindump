@@ -56,16 +56,29 @@
             pdf.save('output.pdf');
         }
 
-        // Convert each JSON data to HTML table and then to PDF
-        const htmlTable1 = jsonToTable(cardData1);
-        htmlToPdf(htmlTable1);
+        // Handle button click for cardData1
+        document.getElementById('btnCardData1').addEventListener('click', function() {
+            const htmlTable = jsonToTable(cardData1);
+            htmlToPdf(htmlTable);
+        });
 
-        const htmlTable2 = jsonToTable(cardData2);
-        htmlToPdf(htmlTable2);
+        // Handle button click for cardData2
+        document.getElementById('btnCardData2').addEventListener('click', function() {
+            const htmlTable = jsonToTable(cardData2);
+            htmlToPdf(htmlTable);
+        });
 
-        const htmlTable3 = jsonToTable(cardData3);
-        htmlToPdf(htmlTable3);
+        // Handle button click for cardData3
+        document.getElementById('btnCardData3').addEventListener('click', function() {
+            const htmlTable = jsonToTable(cardData3);
+            htmlToPdf(htmlTable);
+        });
     </script>
+
+    <!-- Buttons to trigger PDF generation -->
+    <button id="btnCardData1">Generate PDF for cardData1</button>
+    <button id="btnCardData2">Generate PDF for cardData2</button>
+    <button id="btnCardData3">Generate PDF for cardData3</button>
 
 </body>
 </html>
