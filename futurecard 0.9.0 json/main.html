@@ -65,7 +65,10 @@
       border: none;
       background-color: #ddf6ff;
       height: auto;
+      resize: none; /* ユーザーが手動でサイズ変更できないように設定 */
+      overflow-y: hidden; /* 縦方向のスクロールバーを非表示に */
     }
+
     .textarea {
       padding: 100px;
     }
@@ -361,6 +364,23 @@
       const menuDropdown = document.getElementById('menuDropdown');
       menuDropdown.classList.toggle('active');
     }
+      // ページが読み込まれたときに実行する関数を追加
+  document.addEventListener('DOMContentLoaded', () => {
+    // 全てのテキストエリアについて処理を行う
+    document.querySelectorAll('.combined-text').forEach(textarea => {
+      // テキストエリアの高さを自動調整する関数を実行
+      autoAdjustTextareaHeight(textarea);
+      // テキストエリアの内容が変更されたときに高さを再調整するようにイベントリスナーを追加
+      textarea.addEventListener('input', () => autoAdjustTextareaHeight(textarea));
+    });
+  });
+
+  // テキストエリアの高さを自動調整する関数
+  function autoAdjustTextareaHeight(textarea) {
+    // テキストエリアの高さを内容に合わせて自動調整
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  }
   </script>
 </body>
 </html>
