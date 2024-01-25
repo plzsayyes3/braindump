@@ -3,32 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
   <title>Future Card</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
+      font-family: 'Zen Maru Gothic', sans-serif; /* Zen Maru Gothicをフォントに指定 */
     }
 
-    .header {
-      background-color: #94c2e0;
-      padding: 10px;
+    .line {
+      font-family: 'Zen Maru Gothic', sans-serif; /* Zen Maru Gothicをフォントに指定 */
+      background-color: #d1e2ec6c;
+      padding: 8px;
+      padding-left: 10px;
     }
 
     .create-button {
-      background-color: #618095;
-      color: #fff;
+      background-color: #bbcfdd10;
+      color: #344364;
       padding: 10px;
       border: none;
       cursor: pointer;
       font-size: 16px;
+      line-height: 1.5;
+      border-radius: 3px;
     }
 
     .card-container {
       display: flex;
       flex-wrap: nowrap;
       overflow-x: auto;
-      padding: 20px;
+      padding: 9px;
       gap: 10px;
       cursor: grab;
       user-select: none;
@@ -64,7 +70,7 @@
       margin-bottom: 10px;
       border: none;
       background-color: #ddf6ff;
-      height: auto;
+      min-height: 20px;
       resize: none; /* ユーザーが手動でサイズ変更できないように設定 */
       overflow-y: hidden; /* 縦方向のスクロールバーを非表示に */
     }
@@ -78,55 +84,23 @@
     }
 
     .selected-card {
-      border: 2px solid #ff6347;
+      border: 2px solid #1056b15b;
     }
 
-    /* ドロップダウンメニュー関連のスタイル */
-    .dropdown {
-      display: inline-block;
-      position: relative;
-    }
-
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: #f9f9f9;
-      min-width: 160px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-      z-index: 1;
-    }
-
-    .dropdown.active .dropdown-content {
-      display: block;
-    }
-
-    .dropdown-content a {
-      color: #333;
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-    }
-
-    .dropdown-content a:hover {
-      background-color: #ddd;
+    .card.dragging {
+      cursor: grabbing;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <!-- ドロップダウンメニュー -->
-    <div class="dropdown" id="menuDropdown">
-      <button class="create-button" onclick="toggleMenu()">+</button>
-      <div class="dropdown-content">
-        <a href="#" onclick="menuAction1()">メニューアイテム1</a>
-        <a href="#" onclick="menuAction2()">メニューアイテム2</a>
-        <!-- 別のメニューアイテムを追加できます -->
-      </div>
-    </div>
-
-    <div class="header">
-      <button class="create-button" onclick="addCard('cardData1')">New Week</button>
-      <button onclick="saveToJSON('cardData1')">保存</button>
+    <div class="line">
+      　WEEK　
+      <button class="create-button" onclick="addCard('cardData1')">＋</button>
+      <button class="create-button" onclick="moveSelectedCardLeft()">◀</button>
+      <button class="create-button" onclick="moveSelectedCardRight()">▶</button>
+      <button class="create-button" onclick="deleteSelectedCard()">🗑️</button>
+      <button class="create-button" onclick="saveToJSON('cardData1')">💾</button>
     </div>
   </div>
 
@@ -134,18 +108,26 @@
     <!-- カード要素を追加 (View 1) -->
   </div>
 
-  <div class="header">
-    <button class="create-button" onclick="addCard('cardData2')">New Month</button>
-    <button onclick="saveToJSON('cardData2')">保存</button>
+  <div class="line">
+    　MONTH　
+    <button class="create-button" onclick="addCard('cardData2')">＋</button>
+    <button class="create-button" onclick="moveSelectedCardLeft()">◀</button>
+    <button class="create-button" onclick="moveSelectedCardRight()">▶</button>
+    <button class="create-button" onclick="deleteSelectedCard()">🗑️</button>
+    <button class="create-button" onclick="saveToJSON('cardData2')">💾</button>
   </div>
 
   <div class="card-container" id="cardContainer2">
     <!-- カード要素を追加 (View 2) -->
   </div>
 
-  <div class="header">
-    <button class="create-button" onclick="addCard('cardData3')">New Quarter</button>
-    <button onclick="saveToJSON('cardData3')">保存</button>
+  <div class="line">
+    　QUATER　
+    <button class="create-button" onclick="addCard('cardData3')">＋</button>
+    <button class="create-button" onclick="moveSelectedCardLeft()">◀</button>
+    <button class="create-button" onclick="moveSelectedCardRight()">▶</button>
+    <button class="create-button" onclick="deleteSelectedCard()">🗑️</button>
+    <button class="create-button" onclick="saveToJSON('cardData3')">💾</button>
   </div>
 
   <div class="card-container" id="cardContainer3">
@@ -160,40 +142,76 @@
       loadCards('cardData2', 'cardContainer2');
       loadCards('cardData3', 'cardContainer3');
     });
-
+  
+    // カードを左に移動する関数
+    function moveSelectedCardLeft() {
+      const selectedCard = document.querySelector('.selected-card');
+      if (!selectedCard) return; // 選択されたカードがない場合は何もしない
+  
+      const cardContainer = selectedCard.parentNode;
+      const prevCard = selectedCard.previousElementSibling;
+      if (!prevCard) return; // 左に移動できるカードがない場合は何もしない
+  
+      cardContainer.insertBefore(selectedCard, prevCard);
+      saveToJSON(cardContainer.id);
+    }
+  
+    // カードを右に移動する関数
+    function moveSelectedCardRight() {
+      const selectedCard = document.querySelector('.selected-card');
+      if (!selectedCard) return; // 選択されたカードがない場合は何もしない
+  
+      const cardContainer = selectedCard.parentNode;
+      const nextCard = selectedCard.nextElementSibling;
+      if (!nextCard) return; // 右に移動できるカードがない場合は何もしない
+  
+      cardContainer.insertBefore(nextCard, selectedCard);
+      saveToJSON(cardContainer.id);
+    }
+  
+    // カードを削除する関数
+    function deleteSelectedCard() {
+      const selectedCard = document.querySelector('.selected-card');
+      if (!selectedCard) return; // 選択されたカードがない場合は何もしない
+  
+      const cardContainer = selectedCard.parentNode;
+      cardContainer.removeChild(selectedCard);
+      saveToJSON(cardContainer.id);
+    }
+  
     function addCard(storageKey) {
       const cardContainer = document.getElementById(`cardContainer${storageKey.slice(-1)}`);
-
+  
       const newCard = document.createElement('div');
       const newId = new Date().getTime();
       newCard.className = 'card';
       newCard.setAttribute('data-id', newId);
-
+  
       const title = document.createElement('div');
       title.className = 'title editable';
       title.textContent = 'New Card Title';
       title.setAttribute('contenteditable', 'true');
       title.addEventListener('input', () => saveContent(title, newId, storageKey));
-
+  
       const combinedText = document.createElement('textarea');
       combinedText.className = 'combined-text editable';
       combinedText.textContent = 'New Item';
       combinedText.setAttribute('contenteditable', 'true');
       combinedText.addEventListener('input', () => saveContent(combinedText, newId, storageKey));
-      
+  
       newCard.appendChild(title);
       newCard.appendChild(combinedText);
-
+  
       // カードを選択できるようにするためのイベントリスナーを追加
       newCard.addEventListener('click', () => selectCard(newCard));
-
+  
       cardContainer.appendChild(newCard);
     }
-
+  
     function loadCards(storageKey, containerId) {
       const cardContainer = document.getElementById(containerId);
       const savedData = localStorage.getItem(storageKey);
-
+  
       if (savedData) {
         const cards = JSON.parse(savedData);
         cards.forEach(cardData => {
@@ -204,49 +222,49 @@
         addCardToContainer(null, cardContainer, storageKey);
       }
     }
-
+  
     function addCardToContainer(data, container, storageKey) {
       const newCard = document.createElement('div');
       const newId = data ? data.id : new Date().getTime();
       newCard.className = 'card';
       newCard.setAttribute('data-id', newId);
-
+  
       const title = document.createElement('div');
       title.className = 'title editable';
       title.textContent = data ? data.title : 'New Card Title';
       title.setAttribute('contenteditable', 'true');
       title.addEventListener('input', () => saveContent(title, newId, storageKey));
-
+  
       const combinedText = document.createElement('textarea');
       combinedText.className = 'combined-text editable';
       combinedText.textContent = data ? data.items.join('\n') : 'New Item';
       combinedText.setAttribute('contenteditable', 'true');
       combinedText.addEventListener('input', () => saveContent(combinedText, newId, storageKey));
-      
+  
       newCard.appendChild(title);
       newCard.appendChild(combinedText);
-
+  
       // カードを選択できるようにするためのイベントリスナーを追加
       newCard.addEventListener('click', () => selectCard(newCard));
-
+  
       container.appendChild(newCard);
     }
-
+  
     function enterEditMode(element) {
       element.setAttribute('contenteditable', 'true');
       element.classList.add('editable');
       element.focus();
     }
-
+  
     function saveContent(element, id, storageKey) {
       // データをJSONに保存する処理を追加
       saveToJSON(storageKey);
     }
-
+  
     function saveToJSON(storageKey) {
       const cardContainer = document.getElementById(`cardContainer${storageKey.slice(-1)}`);
       const cards = [];
-
+  
       cardContainer.querySelectorAll('.card').forEach(card => {
         const cardData = {
           id: card.getAttribute('data-id'),
@@ -255,14 +273,14 @@
         };
         cards.push(cardData);
       });
-
+  
       const jsonData = JSON.stringify(cards);
       console.log(jsonData);
-
+  
       // ローカルストレージにデータを保存
       localStorage.setItem(storageKey, jsonData);
     }
-
+  
     function handleKeyDown(event) {
       if (event.key === 'Escape') {
         const editableElement = document.querySelector('.editable[contenteditable="true"]');
@@ -276,26 +294,26 @@
         }
       }
     }
-
+  
     function enterPreviewMode() {
       const cardContainer = document.querySelector('.card-container');
       cardContainer.querySelectorAll('.editable').forEach(element => {
         element.classList.add('preview-mode');
       });
     }
-
+  
     function exitPreviewMode() {
       const cardContainer = document.querySelector('.card-container');
       cardContainer.querySelectorAll('.editable').forEach(element => {
         element.classList.remove('preview-mode');
       });
     }
-
+  
     document.addEventListener('keydown', handleKeyDown);
-
+  
     // カードコンテナにドラッグ関連の処理を追加
     const cardContainers = document.querySelectorAll('.card-container');
-
+  
     cardContainers.forEach(cardContainer => {
       cardContainer.addEventListener('wheel', (event) => {
         // マウスホイールの動きに合わせて横にスクロール
@@ -303,84 +321,76 @@
         // イベントのデフォルトのスクロールを無効化
         event.preventDefault();
       });
-
-      // ドラッグ開始時にドラッグ中のカードを選択状態にする
-      cardContainer.addEventListener('mousedown', (event) => {
-        const isCard = event.target.classList.contains('card');
-        if (isCard) {
-          selectCard(event.target);
-        }
-      });
-
+  
       // ドラッグ中のカードコンテナの挙動
       let isDragging = false;
       let startX;
       let scrollLeft;
-
+  
       cardContainer.addEventListener('mousedown', (e) => {
         isDragging = true;
         startX = e.pageX - cardContainer.offsetLeft;
         scrollLeft = cardContainer.scrollLeft;
-
+  
         // ドラッグ中のカードコンテナにクラスを付与
         cardContainer.classList.add('dragging');
       });
-
+  
       cardContainer.addEventListener('mouseleave', () => {
         // マウスがカードコンテナを離れたらドラッグ終了
         isDragging = false;
         cardContainer.classList.remove('dragging');
       });
-
+  
       cardContainer.addEventListener('mouseup', () => {
         // ドラッグ終了
         isDragging = false;
         cardContainer.classList.remove('dragging');
       });
-
+  
       cardContainer.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         e.preventDefault();
         const x = e.pageX - cardContainer.offsetLeft;
         const walk = (x - startX) * 2; // スクロール速度の調整
-
+  
         // ドラッグ中のスクロール処理
         cardContainer.scrollLeft = scrollLeft - walk;
       });
     });
-
+  
     function selectCard(selectedCard) {
       // すべてのカードから選択状態を解除
       document.querySelectorAll('.card').forEach(card => {
         card.classList.remove('selected-card');
       });
-
+  
       // クリックされたカードに選択状態を付与
       selectedCard.classList.add('selected-card');
-      
     }
-
+  
     function toggleMenu() {
       const menuDropdown = document.getElementById('menuDropdown');
       menuDropdown.classList.toggle('active');
     }
-      // ページが読み込まれたときに実行する関数を追加
-  document.addEventListener('DOMContentLoaded', () => {
-    // 全てのテキストエリアについて処理を行う
-    document.querySelectorAll('.combined-text').forEach(textarea => {
-      // テキストエリアの高さを自動調整する関数を実行
-      autoAdjustTextareaHeight(textarea);
-      // テキストエリアの内容が変更されたときに高さを再調整するようにイベントリスナーを追加
-      textarea.addEventListener('input', () => autoAdjustTextareaHeight(textarea));
+  
+    // ページが読み込まれたときに実行する関数を追加
+    document.addEventListener('DOMContentLoaded', () => {
+      // 全てのテキストエリアについて処理を行う
+      document.querySelectorAll('.combined-text').forEach(textarea => {
+        // テキストエリアの高さを自動調整する関数を実行
+        autoAdjustTextareaHeight(textarea);
+        // テキストエリアの内容が変更されたときに高さを再調整するようにイベントリスナーを追加
+        textarea.addEventListener('input', () => autoAdjustTextareaHeight(textarea));
+      });
     });
-  });
-
-  // テキストエリアの高さを自動調整する関数
-  function autoAdjustTextareaHeight(textarea) {
-    // テキストエリアの高さを内容に合わせて自動調整
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
-  }
-  </script>
+  
+    // テキストエリアの高さを自動調整する関数
+    function autoAdjustTextareaHeight(textarea) {
+      // テキストエリアの高さを内容に合わせて自動調整
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+  </script>  
 </body>
 </html>

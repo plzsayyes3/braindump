@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JSON to Table</title>
-  <link href="https://fonts.googleapis.com/earlyaccess/hannari.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
   <style>
     table {
       border-collapse: collapse;
-      font-family: 'Hannari', sans-serif; /* はんなり明朝をフォントに指定 */
+      font-family: 'Zen Maru Gothic', sans-serif; /* Zen Maru Gothicをフォントに指定 */
     }
     td {
       border: 1px solid black;
@@ -17,79 +17,79 @@
   </style>
 </head>
 <body>
-<h2>Week</h2>
-<table>
-  <tbody id="tableBodyWeek">
-    <!-- Table body will be dynamically populated with JSON data -->
-  </tbody>
-</table>
-<h2>Month</h2>
-<table>
-  <tbody id="tableBodyMonth">
-    <!-- Table body will be dynamically populated with JSON data -->
-  </tbody>
-</table>
-<h2>Quarter</h2>
-<table>
-  <tbody id="tableBodyQuarter">
-    <!-- Table body will be dynamically populated with JSON data -->
-  </tbody>
-</table>
+  <h2>Week</h2>
+  <table>
+    <tbody id="tableBodyWeek">
+      <!-- Table body will be dynamically populated with JSON data -->
+    </tbody>
+  </table>
+  <h2>Month</h2>
+  <table>
+    <tbody id="tableBodyMonth">
+      <!-- Table body will be dynamically populated with JSON data -->
+    </tbody>
+  </table>
+  <h2>Quarter</h2>
+  <table>
+    <tbody id="tableBodyQuarter">
+      <!-- Table body will be dynamically populated with JSON data -->
+    </tbody>
+  </table>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Retrieve JSON data from local storage
-  var jsonDataWeek = localStorage.getItem('cardData1');
-  var jsonDataMonth = localStorage.getItem('cardData2');
-  var jsonDataQuarter = localStorage.getItem('cardData3');
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Retrieve JSON data from local storage
+      var jsonDataWeek = localStorage.getItem('cardData1');
+      var jsonDataMonth = localStorage.getItem('cardData2');
+      var jsonDataQuarter = localStorage.getItem('cardData3');
 
-  // Function to create table rows dynamically
-  function createTableRows(data, tableBodyId) {
-    var dataArray = JSON.parse(data);
-    var tableBody = document.getElementById(tableBodyId);
+      // Function to create table rows dynamically
+      function createTableRows(data, tableBodyId) {
+        var dataArray = JSON.parse(data);
+        var tableBody = document.getElementById(tableBodyId);
 
-    var titleRow = document.createElement('tr');
-    var itemsRow = document.createElement('tr');
+        var titleRow = document.createElement('tr');
+        var itemsRow = document.createElement('tr');
 
-    dataArray.forEach(function(data) {
-      // Add Title cell to title row
-      var titleCell = document.createElement('td');
-      titleCell.textContent = data.title;
-      titleRow.appendChild(titleCell);
+        dataArray.forEach(function(data) {
+          // Add Title cell to title row
+          var titleCell = document.createElement('td');
+          titleCell.textContent = data.title;
+          titleRow.appendChild(titleCell);
 
-      // Add Items cell to items row
-      var itemsCell = document.createElement('td');
-      itemsCell.innerHTML = data.items.join('<br>');
-      itemsRow.appendChild(itemsCell);
+          // Add Items cell to items row
+          var itemsCell = document.createElement('td');
+          itemsCell.innerHTML = data.items.join('<br>');
+          itemsRow.appendChild(itemsCell);
+        });
+
+        // Append the title and items rows to the table body
+        tableBody.appendChild(titleRow);
+        tableBody.appendChild(itemsRow);
+      }
+
+      // Populate Week table
+      if (jsonDataWeek !== null) {
+        createTableRows(jsonDataWeek, 'tableBodyWeek');
+      } else {
+        console.error('Week JSON data not found in local storage.');
+      }
+
+      // Populate Month table
+      if (jsonDataMonth !== null) {
+        createTableRows(jsonDataMonth, 'tableBodyMonth');
+      } else {
+        console.error('Month JSON data not found in local storage.');
+      }
+
+      // Populate Quarter table
+      if (jsonDataQuarter !== null) {
+        createTableRows(jsonDataQuarter, 'tableBodyQuarter');
+      } else {
+        console.error('Quarter JSON data not found in local storage.');
+      }
     });
-
-    // Append the title and items rows to the table body
-    tableBody.appendChild(titleRow);
-    tableBody.appendChild(itemsRow);
-  }
-
-  // Populate Week table
-  if (jsonDataWeek !== null) {
-    createTableRows(jsonDataWeek, 'tableBodyWeek');
-  } else {
-    console.error('Week JSON data not found in local storage.');
-  }
-
-  // Populate Month table
-  if (jsonDataMonth !== null) {
-    createTableRows(jsonDataMonth, 'tableBodyMonth');
-  } else {
-    console.error('Month JSON data not found in local storage.');
-  }
-
-  // Populate Quarter table
-  if (jsonDataQuarter !== null) {
-    createTableRows(jsonDataQuarter, 'tableBodyQuarter');
-  } else {
-    console.error('Quarter JSON data not found in local storage.');
-  }
-});
-</script>
+  </script>
 
 </body>
 </html>
