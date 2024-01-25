@@ -3,47 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalStorage Example</title>
+    <title>JSON to HTML Table</title>
 </head>
 <body>
-    <div id="outputContainer"></div>
 
-    <script>
-        const cardData1 = JSON.parse(localStorage.getItem('cardData1')) || [];
-        const cardData2 = JSON.parse(localStorage.getItem('cardData2')) || [];
-        const cardData3 = JSON.parse(localStorage.getItem('cardData3')) || [];
+<script>
+    // ここにJSONデータを入力してください
+    var cardData1 = {
+        "title": "Table Title",
+        "items": [
+            {"id": 1, "name": "Item 1", "price": 10},
+            {"id": 2, "name": "Item 2", "price": 20},
+            {"id": 3, "name": "Item 3", "price": 30}
+        ]
+    };
 
-        const groupedData = {
-            "# Week": cardData1,
-            "# Month": cardData2,
-            "# Quarter": cardData3
-        };
-
-        const outputContainer = document.getElementById('outputContainer');
-
-        for (const [groupTitle, cards] of Object.entries(groupedData)) {
-            // Create h2 element for group title
-            const groupTitleElement = document.createElement('h2');
-            groupTitleElement.textContent = groupTitle;
-            outputContainer.appendChild(groupTitleElement);
-
-            cards.forEach((card, index) => {
-                // Create h3 element for card title
-                const titleElement = document.createElement('h3');
-                titleElement.textContent = card.title;
-                outputContainer.appendChild(titleElement);
-
-                // Create Markdown formatted text for items
-                const itemsMarkdown = card.items.map(item => `${item}`).join('\n');
-
-                // Create pre element for code block
-                const codeElement = document.createElement('pre');
-                codeElement.textContent = itemsMarkdown;
-
-                // Append code element to output container
-                outputContainer.appendChild(codeElement);
-            });
+    // JSONデータをHTMLテーブルに変換する関数
+    function jsonToTable(jsonData) {
+        var tableHtml = "<table border='1'>";
+        
+        // 1行目にtitleを追加
+        tableHtml += "<tr><th colspan='3'>" + jsonData.title + "</th></tr>";
+        
+        // 2行目にitemsをテーブルの行に変換
+        for (var i = 0; i < jsonData.items.length; i++) {
+            var item = jsonData.items[i];
+            tableHtml += "<tr><td>" + item.id + "</td><td>" + item.name + "</td><td>" + item.price + "</td></tr>";
         }
-    </script>
+        
+        tableHtml += "</table>";
+        return tableHtml;
+    }
+
+    // HTMLにテーブルを挿入
+    document.write(jsonToTable(cardData1));
+</script>
+
 </body>
 </html>
