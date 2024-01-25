@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JSON to Table</title>
+  <link href="https://fonts.googleapis.com/earlyaccess/hannari.css" rel="stylesheet">
   <style>
     table {
       border-collapse: collapse;
-      table-layout: fixed;
-      width: 100%;
+      font-family: 'Hannari', sans-serif; /* はんなり明朝をフォントに指定 */
     }
     td {
-      border: 1px solid rgb(156, 156, 156);
+      border: 1px solid black;
       padding: 8px;
     }
   </style>
@@ -35,7 +35,6 @@
     <!-- Table body will be dynamically populated with JSON data -->
   </tbody>
 </table>
-<button onclick="generatePDF()">印刷プレビュー</button>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -90,49 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error('Quarter JSON data not found in local storage.');
   }
 });
-
-function generatePDF() {
-  // Create a new PDF document
-  var pdf = new jsPDF();
-
-  // Iterate through tables and add them to the PDF
-  var tables = document.querySelectorAll('table');
-  var yOffset = 20;
-
-  tables.forEach(function(table, index) {
-    var canvas = document.createElement('canvas');
-    canvas.width = table.offsetWidth;
-    canvas.height = table.offsetHeight;
-    var context = canvas.getContext('2d');
-
-    // Draw the table content on the canvas
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.font = '12px Arial';
-    context.fillStyle = '#000000';
-
-    // Draw each cell of the table on the canvas
-    var cells = table.querySelectorAll('td');
-    var cellHeight = 20; // Adjust as needed
-    cells.forEach(function(cell, cellIndex) {
-      context.fillText(cell.textContent, cell.offsetLeft + 5, cell.offsetTop + cellHeight);
-    });
-
-    // Add the canvas as an image to the PDF
-    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 20, yOffset, canvas.width / 4, canvas.height / 4);
-
-    // Adjust the yOffset for the next table
-    yOffset += canvas.height / 4 + 10;
-    
-    // Add a new page for the next table
-    if (index < tables.length - 1) {
-      pdf.addPage();
-    }
-  });
-
-  // Save the PDF
-  pdf.save('output.pdf');
-}
 </script>
 
 </body>
