@@ -99,8 +99,8 @@
       <button class="create-button" onclick="addCard('cardData1')">＋</button>
       <button class="create-button" onclick="moveSelectedCardLeft()">◀</button>
       <button class="create-button" onclick="moveSelectedCardRight()">▶</button>
-      <button class="create-button" onclick="deleteSelectedCard()">🗑️</button>
       <button class="create-button" onclick="saveToJSON('cardData1')">💾</button>
+      <button class="create-button" onclick="deleteSelectedCard()">🗑️</button>
     </div>
   </div>
 
@@ -113,8 +113,8 @@
     <button class="create-button" onclick="addCard('cardData2')">＋</button>
     <button class="create-button" onclick="moveSelectedCardLeft()">◀</button>
     <button class="create-button" onclick="moveSelectedCardRight()">▶</button>
-    <button class="create-button" onclick="deleteSelectedCard()">🗑️</button>
     <button class="create-button" onclick="saveToJSON('cardData2')">💾</button>
+    <button class="create-button" onclick="deleteSelectedCard()">🗑️</button>
   </div>
 
   <div class="card-container" id="cardContainer2">
@@ -126,8 +126,8 @@
     <button class="create-button" onclick="addCard('cardData3')">＋</button>
     <button class="create-button" onclick="moveSelectedCardLeft()">◀</button>
     <button class="create-button" onclick="moveSelectedCardRight()">▶</button>
-    <button class="create-button" onclick="deleteSelectedCard()">🗑️</button>
     <button class="create-button" onclick="saveToJSON('cardData3')">💾</button>
+    <button class="create-button" onclick="deleteSelectedCard()">🗑️</button>
   </div>
 
   <div class="card-container" id="cardContainer3">
@@ -169,15 +169,19 @@
       saveToJSON(cardContainer.id);
     }
   
-    // カードを削除する関数
-    function deleteSelectedCard() {
-      const selectedCard = document.querySelector('.selected-card');
-      if (!selectedCard) return; // 選択されたカードがない場合は何もしない
-  
-      const cardContainer = selectedCard.parentNode;
-      cardContainer.removeChild(selectedCard);
-      saveToJSON(cardContainer.id);
-    }
+      // カードを削除する関数
+      function deleteSelectedCard() {
+        const selectedCard = document.querySelector('.selected-card');
+        if (!selectedCard) return; // 選択されたカードがない場合は何もしない
+
+        // 削除の確認をユーザーに求める
+        const isConfirmed = confirm('このカードを削除しますか？');
+        if (isConfirmed) {
+          const cardContainer = selectedCard.parentNode;
+          cardContainer.removeChild(selectedCard);
+          saveToJSON(cardContainer.id);
+        }
+      }
   
     function addCard(storageKey) {
       const cardContainer = document.getElementById(`cardContainer${storageKey.slice(-1)}`);
