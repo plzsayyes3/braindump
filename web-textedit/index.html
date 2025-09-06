@@ -2,71 +2,260 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>シンプルなメモ帳</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>強化版メモ帳</title>
+    <!-- CodeMirrorのコアCSSとテーマを読み込む -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.css">
     <style>
+        /* Base styles - 全体の見た目を制御します */
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f9;
+            /* 背景色を変更すると、画面全体のテーマカラーが変わります */
+            background-color: #121212;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        
+        /* Main content container - メモ帳の主要なコンテナです */
+        .note-app {
+            /* 背景色を変更すると、メモ帳のカードの色が変わります */
+            background-color: #1e1e1e;
+            /* box-shadowを変更すると、メモ帳の影の濃さが変わります */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            /* widthを変更すると、メモ帳の横幅が変わります */
+            width: calc(100% - 40px);
+            max-width: 700px;
             padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        #title-input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        #note-textarea {
-            width: 100%;
-            height: 400px;
-            padding: 15px;
-            font-size: 1em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            resize: vertical;
-        }
-        #save-button {
-            display: block;
-            width: 100%;
-            padding: 15px;
+            box-sizing: border-box;
             margin-top: 20px;
-            font-size: 1.2em;
-            color: #fff;
-            background-color: #007bff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
+        
+        /* Title and headings - ページ上部のタイトルです */
+        h1 {
+            /* text-alignを変更すると、タイトルの位置が変わります（例: right, left） */
+            text-align: center;
+            /* colorを変更すると、タイトルの文字色が変わります */
+            color: #fff;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+        
+        /* Input area - テキスト入力欄のコンテナです */
+        .input-group {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        
+        /* CodeMirror styles - エディタ自体の見た目を制御します */
+        .CodeMirror {
+            border: 1px solid #333;
+            border-radius: 8px;
+            /* エディタの背景色を変更すると、文字入力エリアの色が変わります */
+            background-color: #2b2b2b;
+            /* エディタのデフォルト文字色を変更すると、文字色が全体的に変わります */
+            color: #e0e0e0;
+            height: 100%;
+            font-size: 1em;
+            line-height: 1.6;
+        }
+
+        /* Zen Mode styles - ボタンの表示・非表示を制御します */
+        .button-group {
+            /* opacityを変更すると、ボタンの透明度が変わります */
+            opacity: 0;
+            /* transitionを変更すると、ボタンの表示・非表示アニメーションの速さが変わります */
+            transition: opacity 0.5s ease-in-out;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            max-width: 660px;
+        }
+        
+        /* bodyにホバーした時とボタンにホバーした時のスタイル */
+        body:hover .button-group,
+        .button-group:hover {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .button-group button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            color: #fff;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: none;
+        }
+        
+        #save-button {
+            /* 背景色を変更すると、保存ボタンの色が変わります */
+            background-color: #6c757d;
+        }
+        
         #save-button:hover {
-            background-color: #0056b3;
+            background-color: #5a6268;
+        }
+        
+        #share-button {
+            /* 背景色を変更すると、共有ボタンの色が変わります */
+            background-color: #8c959d;
+        }
+        
+        #share-button:hover {
+            background-color: #7d848c;
+        }
+        
+        /* Status message - 完了メッセージのスタイルです */
+        .status-message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #fff;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>シンプルなメモ帳</h1>
-    <input type="text" id="title-input" placeholder="タイトルを入力">
-    <textarea id="note-textarea" placeholder="ここにメモを書く..."></textarea>
-    <button id="save-button">保存</button>
+<div class="note-app">
+    <h1 id="note-title"></h1>
+
+    <div class="input-group">
+        <textarea id="note-textarea" placeholder="ここにメモを書く..."></textarea>
+    </div>
+
+    <div class="button-group">
+        <button id="save-button">保存</button>
+        <button id="share-button">共有</button>
+    </div>
+    <p class="status-message" id="status-message"></p>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.js"></script>
 <script>
-    // ここにJavaScriptのコードを書きます
+    // JavaScriptコードをここに書く - アプリの動作を制御します
+    document.addEventListener('DOMContentLoaded', () => {
+        // HTML要素を取得する
+        const noteTitle = document.getElementById('note-title');
+        const noteTextarea = document.getElementById('note-textarea');
+        const saveButton = document.getElementById('save-button');
+        const shareButton = document.getElementById('share-button');
+        const statusMessage = document.getElementById('status-message');
+
+        // 今日の日付をタイトルに設定
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
+        noteTitle.textContent = `${year}年${month}月${day}日のメモ`;
+
+        // CodeMirrorを初期化 - エディタの機能や見た目を設定します
+        const editor = CodeMirror.fromTextArea(noteTextarea, {
+            mode: "htmlmixed", // 文法ハイライトのモードを設定
+            theme: "monokai", // エディタのテーマを設定
+            lineNumbers: false, // 行番号の表示を制御
+            lineWrapping: true, // 自動折り返しを制御
+            extraKeys: {"Cmd-S": "save", "Ctrl-S": "save"}, // ショートカットキーを設定
+        });
+        
+        // アクティブな行のスタイルを動的に変更
+        // この部分を変更すると、カーソルがある行の見た目の挙動が変わります
+        let activeLineHandle = null;
+        editor.on("cursorActivity", () => {
+            if (activeLineHandle) {
+                editor.removeLineClass(activeLineHandle, "background", "CodeMirror-activeline-background");
+                editor.removeLineClass(activeLineHandle, "text", "active-line-text");
+            }
+
+            const currentLine = editor.getLineHandle(editor.getCursor().line);
+            editor.addLineClass(currentLine, "background", "CodeMirror-activeline-background");
+            editor.addLineClass(currentLine, "text", "active-line-text");
+            activeLineHandle = currentLine;
+        });
+
+        // CSSをJavaScriptで動的に追加
+        // このスタイルを変更すると、アクティブな行の色がより確実に反映されます
+        const style = document.createElement('style');
+        style.textContent = `
+            .CodeMirror-lines {
+                color: #888 !important; /* アクティブな行以外の文字色をグレーに */
+            }
+            .CodeMirror-activeline-background {
+                background-color: #383838 !important;
+            }
+            .active-line-text {
+                color: #fff !important; /* アクティブな行の文字色を白に */
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // メモを読み込む
+        function loadNote() {
+            const savedNote = localStorage.getItem('noteContent');
+            if (savedNote) {
+                editor.setValue(savedNote);
+            }
+        }
+
+        // メモを保存する
+        function saveNote() {
+            localStorage.setItem('noteContent', editor.getValue());
+            showStatusMessage('メモを保存しました！');
+        }
+
+        // ステータスメッセージを表示する
+        function showStatusMessage(message) {
+            statusMessage.textContent = message;
+            setTimeout(() => {
+                statusMessage.textContent = '';
+            }, 3000);
+        }
+
+        // 共有ボタンの処理
+        function shareNote() {
+            const noteContent = editor.getValue();
+            const textToShare = noteContent;
+
+            if (noteContent.trim() === '') {
+                showStatusMessage('共有するメモがありません。');
+                return;
+            }
+
+            // クリップボードにテキストをコピー
+            navigator.clipboard.writeText(textToShare)
+                .then(() => {
+                    showStatusMessage('メモをクリップボードにコピーしました！');
+                })
+                .catch(err => {
+                    console.error('クリップボードへのコピーに失敗しました', err);
+                    showStatusMessage('コピーに失敗しました。');
+                });
+        }
+
+        // イベントリスナーを設定
+        saveButton.addEventListener('click', saveNote);
+        shareButton.addEventListener('click', shareNote);
+
+        // ページ読み込み時にメモを読み込む
+        loadNote();
+    });
 </script>
 
 </body>
