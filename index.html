@@ -25,7 +25,7 @@
             background-color: #1e1e1e;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            width: 100%;
+            width: calc(100% - 40px); /* 左右の余白を考慮した幅 */
             max-width: 700px;
             padding: 20px;
             box-sizing: border-box;
@@ -72,7 +72,7 @@
             opacity: 0; /* Initially hidden */
             transition: opacity 0.5s ease-in-out;
             position: absolute;
-            top: 20px; /* Changed from bottom to top */
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             pointer-events: none; /* Disable interaction when hidden */
