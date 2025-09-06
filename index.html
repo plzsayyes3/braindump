@@ -30,16 +30,17 @@
             padding: 20px;
             box-sizing: border-box;
             margin-top: 20px;
-            flex-grow: 1; /* Make it take up remaining vertical space */
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         
         /* Title and headings */
         h1 {
             text-align: center;
             color: #fff;
-            font-size: 1.8em; /* Adjusted for mobile */
+            font-size: 1.8em;
             margin-bottom: 20px;
         }
         
@@ -48,7 +49,7 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            margin-bottom: 15px; /* Added spacing */
+            margin-bottom: 15px;
         }
         
         /* CodeMirror styles */
@@ -57,17 +58,31 @@
             border-radius: 8px;
             background-color: #2b2b2b;
             color: #e0e0e0;
-            height: 100%; /* Make CodeMirror editor fill available space */
+            height: 100%;
             font-size: 1em;
             line-height: 1.6;
         }
         
-        /* Button group */
+        /* Zen Mode styles */
         .button-group {
             display: flex;
             justify-content: space-between;
             gap: 10px;
             width: 100%;
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.5s ease-in-out;
+            position: absolute;
+            top: 20px; /* Changed from bottom to top */
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none; /* Disable interaction when hidden */
+            max-width: 660px;
+        }
+        
+        body:hover .button-group,
+        .button-group:hover {
+            opacity: 1; /* Show on hover */
+            pointer-events: auto; /* Enable interaction */
         }
         
         .button-group button {
@@ -79,11 +94,11 @@
             cursor: pointer;
             color: #fff;
             transition: background-color 0.3s, transform 0.1s;
-            box-shadow: none; /* Remove button shadow */
+            box-shadow: none;
         }
         
         #save-button {
-            background-color: #6c757d; /* Gray color for save button */
+            background-color: #6c757d;
         }
         
         #save-button:hover {
@@ -91,7 +106,7 @@
         }
         
         #share-button {
-            background-color: #8c959d; /* Lighter gray for share button */
+            background-color: #8c959d;
         }
         
         #share-button:hover {
