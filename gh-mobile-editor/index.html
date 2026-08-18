@@ -1,512 +1,534 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0d1117" />
-<title>Notebook Editor</title>
-<link rel="manifest" href="manifest.json" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d1117'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%2358a6ff'%3E%F0%9F%93%93%3C/text%3E%3C/svg%3E" />
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d1117'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%2358a6ff'%3E%F0%9F%93%93%3C/text%3E%3C/svg%3E" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="禅ノート">
+<title>禅ノート - Notebook Inbox</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Zen+Old+Mincho:wght@400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
-  :root {
-    color-scheme: dark;
-    --bg: #0d1117;
-    --bg-elev: #161b22;
-    --border: #30363d;
-    --text: #c9d1d9;
-    --text-dim: #8b949e;
-    --accent: #58a6ff;
-    --accent-fg: #0d1117;
-    --danger: #f85149;
-    --ok: #3fb950;
+  :root{
+    --bg:#1C1B19;
+    --paper:#EAE4D8;
+    --muted:#8C8577;
+    --hairline:#33312C;
+    --hanko:#B23A2E;
+    --hanko-glow:rgba(178,58,46,0.18);
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    height: 100%;
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
-  }
-  #app {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--paper);
+    font-family:'Noto Serif JP','Zen Old Mincho', serif;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
   }
 
-  /* ---- header ---- */
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-elev);
-    flex: none;
+  /* spine label */
+  .spine{
+    position:fixed;
+    left:clamp(14px, 3vw, 36px);
+    top:50%;
+    transform:translateY(-50%);
+    writing-mode:vertical-rl;
+    letter-spacing:0.5em;
+    font-size:15px;
+    color:var(--muted);
+    opacity:0.55;
+    user-select:none;
+    pointer-events:none;
   }
-  header h1 {
-    font-size: 15px;
-    font-weight: 600;
-    margin: 0;
-    color: var(--text);
-    flex: 1;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  header h1 small { color: var(--text-dim); font-weight: 400; }
-  header #logoutBtn { flex: none; margin-left: 8px; }
-
-  button {
-    font-family: inherit;
-    font-size: 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg-elev);
-    color: var(--text);
-    padding: 8px 12px;
-    min-height: 40px;
-    cursor: pointer;
-  }
-  button:active { opacity: 0.7; }
-  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
-  button.ghost { background: transparent; }
-  button.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
-  button:disabled { opacity: 0.5; cursor: default; }
-
-  /* ---- login view ---- */
-  #loginView {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 24px;
-    text-align: center;
-  }
-  #loginView p { color: var(--text-dim); font-size: 14px; max-width: 320px; }
-
-  /* ---- editor view ---- */
-  #editorView { display: none; flex: 1; min-height: 0; flex-direction: column; }
-  #editorView.active { display: flex; }
-  #loginView.hidden { display: none; }
-
-  .toolbar {
-    display: flex;
-    gap: 8px;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-elev);
-    flex: none;
-    flex-wrap: wrap;
-  }
-  .toolbar input[type=text] {
-    flex: 1;
-    min-width: 120px;
-    background: var(--bg);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 10px;
-    font-size: 16px; /* prevents iOS auto-zoom on focus */
+  .spine .dot{
+    display:block;
+    width:4px;height:4px;
+    border-radius:50%;
+    background:var(--hanko);
+    margin:0 auto 14px;
+    opacity:0.8;
   }
 
-  .chips {
-    display: flex;
-    gap: 6px;
-    padding: 8px 12px;
-    overflow-x: auto;
-    flex: none;
-    border-bottom: 1px solid var(--border);
+  /* main writing surface */
+  .stage{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    padding-top:14vh;
   }
-  .chips button { flex: none; padding: 6px 10px; min-height: 32px; font-size: 13px; color: var(--text-dim); }
+  .sheet{
+    width:min(680px, 86vw);
+  }
+  textarea{
+    width:100%;
+    min-height:64vh;
+    background:transparent;
+    border:none;
+    outline:none;
+    resize:none;
+    color:var(--paper);
+    font-family:'Noto Serif JP','Zen Old Mincho', serif;
+    font-weight:300;
+    font-size:19px;
+    line-height:2.15;
+    letter-spacing:0.02em;
+  }
+  textarea::placeholder{
+    color:var(--muted);
+    opacity:0.55;
+  }
+  textarea::-webkit-scrollbar{ width:0; }
 
-  #status {
-    padding: 6px 14px;
-    font-size: 12px;
-    color: var(--text-dim);
-    flex: none;
-    min-height: 20px;
-    border-bottom: 1px solid var(--border);
+  /* settings gear */
+  .gear{
+    position:fixed;
+    top:22px; right:26px;
+    width:30px; height:30px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--muted);
+    opacity:0.28;
+    cursor:pointer;
+    transition:opacity .3s ease, transform .4s ease;
+    background:none; border:none;
   }
-  #status.error { color: var(--danger); }
-  #status.ok { color: var(--ok); }
+  .gear:hover{ opacity:0.9; transform:rotate(35deg); }
+  .gear svg{ width:17px; height:17px; }
 
-  .content { flex: 1; min-height: 0; position: relative; }
-  #editorArea, #previewArea {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
+  /* status row */
+  .status{
+    position:fixed;
+    bottom:22px;
+    left:0; right:0;
+    display:flex;
+    justify-content:center;
   }
-  #editorArea {
-    border: none;
-    resize: none;
-    padding: 14px;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 15px;
-    line-height: 1.6;
-    background: var(--bg);
-    color: var(--text);
+  .status-inner{
+    width:min(680px, 86vw);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.03em;
   }
-  #previewArea {
-    display: none;
-    padding: 16px;
-    line-height: 1.7;
-    font-size: 15px;
+  .count{ opacity:0.7; }
+  .save-hint{
+    cursor:pointer;
+    opacity:0.75;
+    transition:opacity .2s, color .2s;
+    background:none; border:none;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.03em;
   }
-  #previewArea.active { display: block; }
-  #editorArea.hidden { display: none; }
-  #previewArea h1, #previewArea h2, #previewArea h3 { border-bottom: 1px solid var(--border); padding-bottom: 4px; }
-  #previewArea code { background: var(--bg-elev); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
-  #previewArea pre { background: var(--bg-elev); padding: 10px; border-radius: 8px; overflow-x: auto; }
-  #previewArea pre code { background: none; padding: 0; }
-  #previewArea a { color: var(--accent); }
-  #previewArea blockquote { border-left: 3px solid var(--border); margin: 0; padding-left: 12px; color: var(--text-dim); }
-  #previewArea ul, #previewArea ol { padding-left: 22px; }
-  #previewArea img { max-width: 100%; }
+  .save-hint:hover{ opacity:1; color:var(--paper); }
+  .save-hint:disabled{ opacity:0.3; cursor:default; }
 
-  .bottombar {
-    display: flex;
-    gap: 8px;
-    padding: 10px 12px;
-    border-top: 1px solid var(--border);
-    background: var(--bg-elev);
-    flex: none;
+  .err{
+    position:fixed;
+    bottom:52px; left:0; right:0;
+    display:flex; justify-content:center;
+    pointer-events:none;
   }
-  .bottombar button { flex: 1; }
+  .err-inner{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--hanko);
+    background:var(--hanko-glow);
+    padding:6px 12px;
+    border-radius:2px;
+    opacity:0;
+    transition:opacity .3s ease;
+  }
+  .err-inner.show{ opacity:1; }
+
+  /* hanko stamp */
+  .hanko-stamp{
+    position:fixed;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%) scale(0.4) rotate(-8deg);
+    width:104px; height:104px;
+    border:3px solid var(--hanko);
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--hanko);
+    font-family:'Zen Old Mincho', serif;
+    font-size:44px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s cubic-bezier(.2,1.4,.4,1);
+    box-shadow:0 0 40px var(--hanko-glow);
+  }
+  .hanko-stamp.stamped{
+    opacity:0.92;
+    transform:translate(-50%,-50%) scale(1) rotate(-8deg);
+  }
+  .hanko-stamp.fadeout{
+    opacity:0;
+    transform:translate(-50%,-50%) scale(1.08) rotate(-8deg);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+
+  /* settings modal */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(10,10,9,0.72);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:20;
+  }
+  .overlay.open{ display:flex; }
+  .modal{
+    width:min(400px, 88vw);
+    background:#211F1C;
+    border:1px solid var(--hairline);
+    border-radius:4px;
+    padding:28px 26px 22px;
+    max-height:86vh;
+    overflow-y:auto;
+  }
+  .modal h2{
+    font-size:15px;
+    font-weight:400;
+    letter-spacing:0.08em;
+    color:var(--paper);
+    margin-bottom:4px;
+  }
+  .modal .sub{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--muted);
+    margin-bottom:20px;
+  }
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--muted);
+    margin-bottom:6px;
+    letter-spacing:0.04em;
+  }
+  .field input{
+    width:100%;
+    background:#171614;
+    border:1px solid var(--hairline);
+    border-radius:3px;
+    padding:9px 10px;
+    color:var(--paper);
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    outline:none;
+  }
+  .field input:focus{ border-color:var(--muted); }
+  .modal-actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:20px;
+  }
+  .btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:0.03em;
+    padding:9px 16px;
+    border-radius:3px;
+    cursor:pointer;
+    border:1px solid transparent;
+  }
+  .btn-primary{
+    background:var(--hanko);
+    color:#F4EDE4;
+    border-color:var(--hanko);
+  }
+  .btn-primary:hover{ opacity:0.9; }
+  .btn-ghost{
+    background:none;
+    color:var(--muted);
+    border-color:var(--hairline);
+  }
+  .btn-ghost:hover{ color:var(--paper); }
 </style>
 </head>
 <body>
-<div id="app">
 
-  <header>
-    <h1>📓 Notebook Editor <small id="repoLabel"></small></h1>
-    <button id="logoutBtn" class="ghost" style="display:none">ログアウト</button>
-  </header>
+  <div class="spine"><span class="dot"></span>禅モード</div>
 
-  <div id="status"></div>
+  <button class="gear" id="gearBtn" title="設定" aria-label="設定">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </button>
 
-  <div id="loginView">
-    <p>plzsayyes3/mynotebook を GitHub API 経由で直接編集します。<br>Fine-grained Personal Access Token を貼り付けてください。</p>
-    <input id="tokenInput" type="password" placeholder="github_pat_xxxxxxxx" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;max-width:320px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:16px;" />
-    <button id="loginBtn" class="primary">保存してログイン</button>
-    <p style="font-size:12px">
-      未発行の場合は
-      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener" style="color:var(--accent)">こちら</a>
-      から Fine-grained token を発行（Repository access: mynotebookのみ / Permissions: Contents = Read and write）。
-      トークンはこの端末の localStorage にのみ保存されます。
-    </p>
-  </div>
-
-  <div id="editorView">
-    <div class="toolbar">
-      <input id="pathInput" type="text" placeholder="例: 00_inbox/xxxx.md" value="00_inbox/" autocapitalize="off" autocorrect="off" spellcheck="false" />
-      <button id="loadBtn">開く</button>
-    </div>
-    <div class="chips">
-      <button data-prefix="00_inbox/">00_inbox/</button>
-      <button data-prefix="01_Daily/">01_Daily/</button>
-      <button data-prefix="11_notes/">11_notes/</button>
-      <button data-prefix="09_taskchute/">09_taskchute/</button>
-    </div>
-    <div class="content">
-      <textarea id="editorArea" placeholder="ファイルを開くとここに内容が表示されます" spellcheck="false"></textarea>
-      <div id="previewArea"></div>
-    </div>
-    <div class="bottombar">
-      <button id="toggleBtn">👁 プレビュー</button>
-      <button id="saveBtn" class="primary">保存</button>
+  <div class="stage">
+    <div class="sheet">
+      <textarea id="editor" placeholder="書き始める……" autofocus spellcheck="false"></textarea>
     </div>
   </div>
 
-</div>
+  <div class="status">
+    <div class="status-inner">
+      <span class="count" id="count">0字</span>
+      <button class="save-hint" id="saveBtn">投稿する（⌘+Enter）</button>
+    </div>
+  </div>
+
+  <div class="err"><div class="err-inner" id="errBox"></div></div>
+
+  <div class="hanko-stamp" id="stamp">済</div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2>接続設定</h2>
+      <div class="sub">GitHub Personal Access Token が必要です（対象リポジトリの Contents: Read and write）</div>
+
+      <div class="field">
+        <label>Token</label>
+        <input type="password" id="f-token" placeholder="github_pat_xxxxxxxxxxxx" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>リポジトリ所有者</label>
+        <input type="text" id="f-owner" placeholder="例: plzsayyes3">
+      </div>
+      <div class="field">
+        <label>リポジトリ名</label>
+        <input type="text" id="f-repo" placeholder="例: mynotebook">
+      </div>
+      <div class="field">
+        <label>ブランチ</label>
+        <input type="text" id="f-branch" placeholder="main">
+      </div>
+      <div class="field">
+        <label>保存フォルダ</label>
+        <input type="text" id="f-folder" placeholder="00_inbox">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="clearBtn">接続を解除</button>
+        <button class="btn btn-primary" id="saveSettingsBtn">保存して閉じる</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-(() => {
-  "use strict";
+"use strict";
 
-  // ==== 設定 ====
-  const OWNER = "plzsayyes3";
-  const REPO = "mynotebook";
-  const TOKEN_KEY = "gh_mobile_editor_token";
+// このアプリの初期値（未設定時のプリセット。設定画面でいつでも変更可能）
+const DEFAULTS = {
+  owner: "plzsayyes3",
+  repo: "mynotebook",
+  branch: "main",
+  folder: "00_inbox",
+};
 
-  let defaultBranch = "master";
-  let currentPath = "";
-  let currentSha = null;
-  let dirty = false;
+const editor = document.getElementById('editor');
+const countEl = document.getElementById('count');
+const saveBtn = document.getElementById('saveBtn');
+const gearBtn = document.getElementById('gearBtn');
+const overlay = document.getElementById('overlay');
+const stamp = document.getElementById('stamp');
+const errBox = document.getElementById('errBox');
 
-  const $ = (id) => document.getElementById(id);
-  const loginView = $("loginView");
-  const editorView = $("editorView");
-  const statusEl = $("status");
-  const editorArea = $("editorArea");
-  const previewArea = $("previewArea");
-  const pathInput = $("pathInput");
-  const repoLabel = $("repoLabel");
+const fToken = document.getElementById('f-token');
+const fOwner = document.getElementById('f-owner');
+const fRepo = document.getElementById('f-repo');
+const fBranch = document.getElementById('f-branch');
+const fFolder = document.getElementById('f-folder');
 
-  repoLabel.textContent = `· ${OWNER}/${REPO}`;
+let settings = null;
+let draftTimer = null;
 
-  function setStatus(msg, kind) {
-    statusEl.textContent = msg || "";
-    statusEl.className = kind || "";
+function showError(msg){
+  errBox.textContent = msg;
+  errBox.classList.add('show');
+  setTimeout(()=> errBox.classList.remove('show'), 4200);
+}
+
+function updateCount(){
+  countEl.textContent = editor.value.length + '字';
+}
+
+async function loadSettings(){
+  try{
+    const raw = localStorage.getItem('zen:settings:github');
+    if(raw){ settings = JSON.parse(raw); }
+  }catch(e){ /* no settings saved yet */ }
+}
+
+async function saveSettings(){
+  const obj = {
+    token: fToken.value.trim(),
+    owner: fOwner.value.trim() || DEFAULTS.owner,
+    repo: fRepo.value.trim() || DEFAULTS.repo,
+    branch: fBranch.value.trim() || DEFAULTS.branch,
+    folder: (fFolder.value.trim() || DEFAULTS.folder).replace(/^\/+|\/+$/g,'')
+  };
+  try{
+    localStorage.setItem('zen:settings:github', JSON.stringify(obj));
+    settings = obj;
+    overlay.classList.remove('open');
+  }catch(e){
+    showError('設定の保存に失敗しました');
   }
+}
 
-  function getToken() {
-    return localStorage.getItem(TOKEN_KEY);
-  }
+async function clearSettings(){
+  // トークンを含む接続情報だけを消す。書きかけの下書き(zen:draft:current)は消さない。
+  try{
+    localStorage.removeItem('zen:settings:github');
+  }catch(e){}
+  settings = null;
+  fToken.value=''; fOwner.value=''; fRepo.value=''; fBranch.value=''; fFolder.value='';
+  overlay.classList.remove('open');
+}
 
-  function saveToken(token) {
-    localStorage.setItem(TOKEN_KEY, token);
-  }
+function openSettings(){
+  const s = settings || {};
+  fToken.value = s.token || '';
+  fOwner.value = s.owner || DEFAULTS.owner;
+  fRepo.value = s.repo || DEFAULTS.repo;
+  fBranch.value = s.branch || DEFAULTS.branch;
+  fFolder.value = s.folder || DEFAULTS.folder;
+  overlay.classList.add('open');
+}
 
-  function clearToken() {
-    localStorage.removeItem(TOKEN_KEY);
-  }
-
-  // ---- UTF-8 セーフな base64 変換（日本語ファイル対応）----
-  function b64EncodeUtf8(str) {
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
-      String.fromCharCode(parseInt(p1, 16))
-    ));
-  }
-  function b64DecodeUtf8(b64) {
-    const bin = atob(b64.replace(/\n/g, ""));
-    const percentEncoded = Array.from(bin)
-      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-      .join("");
-    return decodeURIComponent(percentEncoded);
-  }
-
-  // ---- 超簡易 Markdown → HTML（外部ライブラリ不使用）----
-  function renderMarkdown(src) {
-    const escapeHtml = (s) =>
-      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-    const lines = escapeHtml(src).split("\n");
-    let html = "";
-    let inCode = false;
-    let inList = false;
-
-    const inlineFmt = (s) =>
-      s
-        .replace(/`([^`]+)`/g, "<code>$1</code>")
-        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-        .replace(/\[([^\]]*)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-
-    for (const raw of lines) {
-      if (raw.trim().startsWith("```")) {
-        inCode = !inCode;
-        html += inCode ? "<pre><code>" : "</code></pre>";
-        continue;
-      }
-      if (inCode) {
-        html += raw + "\n";
-        continue;
-      }
-      const heading = raw.match(/^(#{1,6})\s+(.*)$/);
-      if (heading) {
-        if (inList) { html += "</ul>"; inList = false; }
-        const level = heading[1].length;
-        html += `<h${level}>${inlineFmt(heading[2])}</h${level}>`;
-        continue;
-      }
-      if (/^\s*[-*]\s+/.test(raw)) {
-        if (!inList) { html += "<ul>"; inList = true; }
-        html += `<li>${inlineFmt(raw.replace(/^\s*[-*]\s+/, ""))}</li>`;
-        continue;
-      }
-      if (inList) { html += "</ul>"; inList = false; }
-      if (raw.match(/^\s*>\s?/)) {
-        html += `<blockquote>${inlineFmt(raw.replace(/^\s*>\s?/, ""))}</blockquote>`;
-        continue;
-      }
-      if (raw.trim() === "") {
-        html += "";
-        continue;
-      }
-      html += `<p>${inlineFmt(raw)}</p>`;
+async function loadDraft(){
+  try{
+    const raw = localStorage.getItem('zen:draft:current');
+    if(raw){
+      editor.value = raw;
+      updateCount();
     }
-    if (inList) html += "</ul>";
-    if (inCode) html += "</code></pre>";
-    return html;
+  }catch(e){ /* no draft */ }
+}
+
+function scheduleDraftSave(){
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(()=>{
+    try{
+      localStorage.setItem('zen:draft:current', editor.value);
+    }catch(e){ /* silent - draft save is best-effort */ }
+  }, 900);
+}
+
+function pad(n){ return String(n).padStart(2,'0'); }
+
+// 既存の 00_inbox ファイル名規則 (例: 20260817223019.md) に合わせ、区切り文字なしのYYYYMMDDHHMMSS
+function timestampName(){
+  const d = new Date();
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+
+function b64EncodeUnicode(str){
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+    String.fromCharCode(parseInt(p1, 16))
+  ));
+}
+
+function playStamp(){
+  stamp.classList.remove('fadeout');
+  stamp.classList.add('stamped');
+  setTimeout(()=>{
+    stamp.classList.add('fadeout');
+    stamp.classList.remove('stamped');
+  }, 900);
+}
+
+async function doSave(){
+  const text = editor.value;
+  if(!text.trim()) return;
+
+  if(!settings || !settings.token || !settings.owner || !settings.repo){
+    openSettings();
+    showError('先に接続設定を入力してください');
+    return;
   }
 
-  // ---- GitHub API ----
-  async function ghFetch(path, opts = {}) {
-    const token = getToken();
-    const resp = await fetch(`https://api.github.com${path}`, {
-      ...opts,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-        ...(opts.headers || {}),
-      },
-    });
-    if (resp.status === 401) {
-      clearToken();
-      showLogin();
-      throw new Error("認証が切れました。再ログインしてください。");
+  saveBtn.disabled = true;
+  saveBtn.textContent = '投稿中…';
+
+  const name = timestampName();
+  const path = `${settings.folder}/${name}.md`;
+  const firstLine = text.split('\n').find(l=>l.trim().length>0) || name;
+  const commitMsg = `Zen: ${firstLine.slice(0,40)}`;
+
+  const apiUrl = `https://api.github.com/repos/${settings.owner}/${settings.repo}/contents/${path}`;
+  const fetchOpts = {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${settings.token}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message: commitMsg,
+      content: b64EncodeUnicode(text),
+      branch: settings.branch || 'main'
+    })
+  };
+
+  try{
+    let res = await fetch(apiUrl, fetchOpts);
+
+    // GitHub側の一時的な401のことがあるため、1回だけ間を置いて自動リトライする
+    // （トークン自体は消さないので、本当に無効な場合だけエラーが表示され続ける）
+    if(res.status === 401){
+      await new Promise(r => setTimeout(r, 1000));
+      res = await fetch(apiUrl, fetchOpts);
     }
-    return resp;
+
+    if(!res.ok){
+      const errData = await res.json().catch(()=>({}));
+      throw new Error(errData.message || `GitHub API error (${res.status})`);
+    }
+
+    playStamp();
+    editor.value = '';
+    updateCount();
+    try{ localStorage.removeItem('zen:draft:current'); }catch(e){}
+
+  }catch(e){
+    showError('投稿に失敗しました: ' + e.message);
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.textContent = '投稿する（⌘+Enter）';
   }
+}
 
-  async function loadRepoInfo() {
-    const resp = await ghFetch(`/repos/${OWNER}/${REPO}`);
-    if (!resp.ok) throw new Error("リポジトリ情報の取得に失敗しました");
-    const data = await resp.json();
-    defaultBranch = data.default_branch || "master";
+editor.addEventListener('input', ()=>{
+  updateCount();
+  scheduleDraftSave();
+});
+
+editor.addEventListener('keydown', (e)=>{
+  if((e.metaKey || e.ctrlKey) && e.key === 'Enter'){
+    e.preventDefault();
+    doSave();
   }
+});
 
-  async function loadFile(path) {
-    setStatus("読み込み中...");
-    const resp = await ghFetch(
-      `/repos/${OWNER}/${REPO}/contents/${encodeURI(path)}?ref=${defaultBranch}`
-    );
-    if (resp.status === 404) {
-      setStatus("ファイルが見つかりません（新規作成はこのエディタでは未対応です）", "error");
-      return;
-    }
-    if (!resp.ok) {
-      setStatus(`読み込み失敗 (${resp.status})`, "error");
-      return;
-    }
-    const data = await resp.json();
-    if (Array.isArray(data)) {
-      setStatus("これはフォルダです。ファイルパスを指定してください。", "error");
-      return;
-    }
-    currentPath = path;
-    currentSha = data.sha;
-    editorArea.value = b64DecodeUtf8(data.content);
-    dirty = false;
-    setStatus(`読み込み完了: ${path}`, "ok");
+saveBtn.addEventListener('click', doSave);
+gearBtn.addEventListener('click', openSettings);
+document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+document.getElementById('clearBtn').addEventListener('click', clearSettings);
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+
+(async function init(){
+  await loadSettings();
+  await loadDraft();
+  updateCount();
+  editor.focus();
+  if(!settings){
+    setTimeout(openSettings, 400);
   }
-
-  async function saveFile() {
-    if (!currentPath) {
-      setStatus("先にファイルを開いてください", "error");
-      return;
-    }
-    setStatus("保存中...");
-    $("saveBtn").disabled = true;
-    try {
-      const body = {
-        message: `Update ${currentPath} via mobile editor (${new Date().toISOString()})`,
-        content: b64EncodeUtf8(editorArea.value),
-        sha: currentSha,
-        branch: defaultBranch,
-      };
-      const resp = await ghFetch(
-        `/repos/${OWNER}/${REPO}/contents/${encodeURI(currentPath)}`,
-        { method: "PUT", body: JSON.stringify(body) }
-      );
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.message || `保存失敗 (${resp.status})`);
-      }
-      const data = await resp.json();
-      currentSha = data.content.sha;
-      dirty = false;
-      setStatus(`保存完了: ${currentPath}`, "ok");
-    } catch (e) {
-      setStatus(e.message, "error");
-    } finally {
-      $("saveBtn").disabled = false;
-    }
-  }
-
-  // ---- 画面切替 ----
-  function showLogin() {
-    loginView.classList.remove("hidden");
-    editorView.classList.remove("active");
-    $("logoutBtn").style.display = "none";
-  }
-
-  async function showEditor() {
-    loginView.classList.add("hidden");
-    editorView.classList.add("active");
-    $("logoutBtn").style.display = "inline-block";
-    try {
-      await loadRepoInfo();
-      setStatus(`準備完了 (branch: ${defaultBranch})`, "ok");
-    } catch (e) {
-      setStatus(e.message, "error");
-    }
-  }
-
-  // ---- ログイン（PAT貼り付け）----
-  async function startLogin() {
-    const token = $("tokenInput").value.trim();
-    if (!token) {
-      setStatus("トークンを入力してください", "error");
-      return;
-    }
-    saveToken(token);
-    setStatus("確認中...");
-    await showEditor(); // トークンが無効なら showEditor 内から自動的にログイン画面に戻る
-  }
-
-  // ---- イベント ----
-  $("loginBtn").addEventListener("click", startLogin);
-  $("logoutBtn").addEventListener("click", () => {
-    clearToken();
-    editorArea.value = "";
-    currentPath = "";
-    currentSha = null;
-    showLogin();
-  });
-  $("loadBtn").addEventListener("click", () => {
-    const path = pathInput.value.trim();
-    if (!path) return;
-    if (dirty && !confirm("未保存の変更があります。破棄して開きますか？")) return;
-    loadFile(path);
-  });
-  $("saveBtn").addEventListener("click", saveFile);
-  editorArea.addEventListener("input", () => { dirty = true; });
-
-  document.querySelectorAll(".chips button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      pathInput.value = btn.dataset.prefix;
-      pathInput.focus();
-    });
-  });
-
-  let previewMode = false;
-  $("toggleBtn").addEventListener("click", () => {
-    previewMode = !previewMode;
-    if (previewMode) {
-      previewArea.innerHTML = renderMarkdown(editorArea.value);
-      editorArea.classList.add("hidden");
-      previewArea.classList.add("active");
-      $("toggleBtn").textContent = "✏️ 編集";
-    } else {
-      editorArea.classList.remove("hidden");
-      previewArea.classList.remove("active");
-      $("toggleBtn").textContent = "👁 プレビュー";
-    }
-  });
-
-  // 離脱時の未保存警告
-  window.addEventListener("beforeunload", (e) => {
-    if (dirty) { e.preventDefault(); e.returnValue = ""; }
-  });
-
-  // ---- 起動 ----
-  (async () => {
-    if (getToken()) {
-      await showEditor();
-    } else {
-      showLogin();
-    }
-  })();
 })();
 </script>
 </body>
