@@ -22,20 +22,22 @@
     --hanko-glow:rgba(178,58,46,0.18);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  html,body{height:100%;}
+  html,body{height:100dvh;}
   body{
     background:var(--bg);
     color:var(--paper);
     font-family:'Noto Serif JP','Zen Old Mincho', serif;
     overflow:hidden;
     -webkit-font-smoothing:antialiased;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
   }
 
-  /* spine label */
+  /* spine label: 実際に見えている高さ(dvh)基準で中央に固定 */
   .spine{
     position:fixed;
     left:clamp(14px, 3vw, 36px);
-    top:50%;
+    top:50dvh;
     transform:translateY(-50%);
     writing-mode:vertical-rl;
     letter-spacing:0.5em;
@@ -54,19 +56,19 @@
     opacity:0.8;
   }
 
-  /* main writing surface */
+  /* main writing surface: 入力エリアが画面の上下中央に来るよう固定 */
   .stage{
-    height:100vh;
+    height:100dvh;
     display:flex;
+    align-items:center;
     justify-content:center;
-    padding-top:14vh;
   }
   .sheet{
     width:min(680px, 86vw);
   }
   textarea{
     width:100%;
-    min-height:64vh;
+    min-height:64dvh;
     background:transparent;
     border:none;
     outline:none;
@@ -87,7 +89,7 @@
   /* settings gear */
   .gear{
     position:fixed;
-    top:22px; right:26px;
+    top:calc(22px + env(safe-area-inset-top)); right:calc(26px + env(safe-area-inset-right));
     width:30px; height:30px;
     display:flex; align-items:center; justify-content:center;
     color:var(--muted);
@@ -102,7 +104,7 @@
   /* status row */
   .status{
     position:fixed;
-    bottom:22px;
+    bottom:calc(22px + env(safe-area-inset-bottom));
     left:0; right:0;
     display:flex;
     justify-content:center;
@@ -133,7 +135,7 @@
 
   .err{
     position:fixed;
-    bottom:52px; left:0; right:0;
+    bottom:calc(52px + env(safe-area-inset-bottom)); left:0; right:0;
     display:flex; justify-content:center;
     pointer-events:none;
   }
