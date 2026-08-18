@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0d1117" />
+<title>Notebook Editor</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d1117'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%2358a6ff'%3E%F0%9F%93%93%3C/text%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d1117'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%2358a6ff'%3E%F0%9F%93%93%3C/text%3E%3C/svg%3E" />
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --bg-elev: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --accent-fg: #0d1117;
+    --danger: #f85149;
+    --ok: #3fb950;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  }
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* ---- header ---- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+    flex: none;
+  }
+  header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  header h1 small { color: var(--text-dim); font-weight: 400; }
+  header #logoutBtn { flex: none; margin-left: 8px; }
+
+  button {
+    font-family: inherit;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    padding: 8px 12px;
+    min-height: 40px;
+    cursor: pointer;
+  }
+  button:active { opacity: 0.7; }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+  button.ghost { background: transparent; }
+  button.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+  button:disabled { opacity: 0.5; cursor: default; }
+
+  /* ---- login view ---- */
+  #loginView {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+  }
+  #loginView p { color: var(--text-dim); font-size: 14px; max-width: 320px; }
+
+  /* ---- editor view ---- */
+  #editorView { display: none; flex: 1; min-height: 0; flex-direction: column; }
+  #editorView.active { display: flex; }
+  #loginView.hidden { display: none; }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+    flex: none;
+    flex-wrap: wrap;
+  }
+  .toolbar input[type=text] {
+    flex: 1;
+    min-width: 120px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 16px; /* prevents iOS auto-zoom on focus */
+  }
+
+  .chips {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    overflow-x: auto;
+    flex: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .chips button { flex: none; padding: 6px 10px; min-height: 32px; font-size: 13px; color: var(--text-dim); }
+
+  #status {
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+    flex: none;
+    min-height: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  #status.error { color: var(--danger); }
+  #status.ok { color: var(--ok); }
+
+  .content { flex: 1; min-height: 0; position: relative; }
+  #editorArea, #previewArea {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+  }
+  #editorArea {
+    border: none;
+    resize: none;
+    padding: 14px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    background: var(--bg);
+    color: var(--text);
+  }
+  #previewArea {
+    display: none;
+    padding: 16px;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  #previewArea.active { display: block; }
+  #editorArea.hidden { display: none; }
+  #previewArea h1, #previewArea h2, #previewArea h3 { border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  #previewArea code { background: var(--bg-elev); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+  #previewArea pre { background: var(--bg-elev); padding: 10px; border-radius: 8px; overflow-x: auto; }
+  #previewArea pre code { background: none; padding: 0; }
+  #previewArea a { color: var(--accent); }
+  #previewArea blockquote { border-left: 3px solid var(--border); margin: 0; padding-left: 12px; color: var(--text-dim); }
+  #previewArea ul, #previewArea ol { padding-left: 22px; }
+  #previewArea img { max-width: 100%; }
+
+  .bottombar {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-elev);
+    flex: none;
+  }
+  .bottombar button { flex: 1; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <h1>📓 Notebook Editor <small id="repoLabel"></small></h1>
+    <button id="logoutBtn" class="ghost" style="display:none">ログアウト</button>
+  </header>
+
+  <div id="status"></div>
+
+  <div id="loginView">
+    <p>plzsayyes3/mynotebook を GitHub API 経由で直接編集します。<br>Fine-grained Personal Access Token を貼り付けてください。</p>
+    <input id="tokenInput" type="password" placeholder="github_pat_xxxxxxxx" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;max-width:320px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:16px;" />
+    <button id="loginBtn" class="primary">保存してログイン</button>
+    <p style="font-size:12px">
+      未発行の場合は
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener" style="color:var(--accent)">こちら</a>
+      から Fine-grained token を発行（Repository access: mynotebookのみ / Permissions: Contents = Read and write）。
+      トークンはこの端末の localStorage にのみ保存されます。
+    </p>
+  </div>
+
+  <div id="editorView">
+    <div class="toolbar">
+      <input id="pathInput" type="text" placeholder="例: 00_inbox/xxxx.md" value="00_inbox/" autocapitalize="off" autocorrect="off" spellcheck="false" />
+      <button id="loadBtn">開く</button>
+    </div>
+    <div class="chips">
+      <button data-prefix="00_inbox/">00_inbox/</button>
+      <button data-prefix="01_Daily/">01_Daily/</button>
+      <button data-prefix="11_notes/">11_notes/</button>
+      <button data-prefix="09_taskchute/">09_taskchute/</button>
+    </div>
+    <div class="content">
+      <textarea id="editorArea" placeholder="ファイルを開くとここに内容が表示されます" spellcheck="false"></textarea>
+      <div id="previewArea"></div>
+    </div>
+    <div class="bottombar">
+      <button id="toggleBtn">👁 プレビュー</button>
+      <button id="saveBtn" class="primary">保存</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ==== 設定 ====
+  const OWNER = "plzsayyes3";
+  const REPO = "mynotebook";
+  const TOKEN_KEY = "gh_mobile_editor_token";
+
+  let defaultBranch = "master";
+  let currentPath = "";
+  let currentSha = null;
+  let dirty = false;
+
+  const $ = (id) => document.getElementById(id);
+  const loginView = $("loginView");
+  const editorView = $("editorView");
+  const statusEl = $("status");
+  const editorArea = $("editorArea");
+  const previewArea = $("previewArea");
+  const pathInput = $("pathInput");
+  const repoLabel = $("repoLabel");
+
+  repoLabel.textContent = `· ${OWNER}/${REPO}`;
+
+  function setStatus(msg, kind) {
+    statusEl.textContent = msg || "";
+    statusEl.className = kind || "";
+  }
+
+  function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+
+  function saveToken(token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+
+  function clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+
+  // ---- UTF-8 セーフな base64 変換（日本語ファイル対応）----
+  function b64EncodeUtf8(str) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+      String.fromCharCode(parseInt(p1, 16))
+    ));
+  }
+  function b64DecodeUtf8(b64) {
+    const bin = atob(b64.replace(/\n/g, ""));
+    const percentEncoded = Array.from(bin)
+      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+      .join("");
+    return decodeURIComponent(percentEncoded);
+  }
+
+  // ---- 超簡易 Markdown → HTML（外部ライブラリ不使用）----
+  function renderMarkdown(src) {
+    const escapeHtml = (s) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    const lines = escapeHtml(src).split("\n");
+    let html = "";
+    let inCode = false;
+    let inList = false;
+
+    const inlineFmt = (s) =>
+      s
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+        .replace(/\[([^\]]*)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+    for (const raw of lines) {
+      if (raw.trim().startsWith("```")) {
+        inCode = !inCode;
+        html += inCode ? "<pre><code>" : "</code></pre>";
+        continue;
+      }
+      if (inCode) {
+        html += raw + "\n";
+        continue;
+      }
+      const heading = raw.match(/^(#{1,6})\s+(.*)$/);
+      if (heading) {
+        if (inList) { html += "</ul>"; inList = false; }
+        const level = heading[1].length;
+        html += `<h${level}>${inlineFmt(heading[2])}</h${level}>`;
+        continue;
+      }
+      if (/^\s*[-*]\s+/.test(raw)) {
+        if (!inList) { html += "<ul>"; inList = true; }
+        html += `<li>${inlineFmt(raw.replace(/^\s*[-*]\s+/, ""))}</li>`;
+        continue;
+      }
+      if (inList) { html += "</ul>"; inList = false; }
+      if (raw.match(/^\s*>\s?/)) {
+        html += `<blockquote>${inlineFmt(raw.replace(/^\s*>\s?/, ""))}</blockquote>`;
+        continue;
+      }
+      if (raw.trim() === "") {
+        html += "";
+        continue;
+      }
+      html += `<p>${inlineFmt(raw)}</p>`;
+    }
+    if (inList) html += "</ul>";
+    if (inCode) html += "</code></pre>";
+    return html;
+  }
+
+  // ---- GitHub API ----
+  async function ghFetch(path, opts = {}) {
+    const token = getToken();
+    const resp = await fetch(`https://api.github.com${path}`, {
+      ...opts,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        ...(opts.headers || {}),
+      },
+    });
+    if (resp.status === 401) {
+      clearToken();
+      showLogin();
+      throw new Error("認証が切れました。再ログインしてください。");
+    }
+    return resp;
+  }
+
+  async function loadRepoInfo() {
+    const resp = await ghFetch(`/repos/${OWNER}/${REPO}`);
+    if (!resp.ok) throw new Error("リポジトリ情報の取得に失敗しました");
+    const data = await resp.json();
+    defaultBranch = data.default_branch || "master";
+  }
+
+  async function loadFile(path) {
+    setStatus("読み込み中...");
+    const resp = await ghFetch(
+      `/repos/${OWNER}/${REPO}/contents/${encodeURI(path)}?ref=${defaultBranch}`
+    );
+    if (resp.status === 404) {
+      setStatus("ファイルが見つかりません（新規作成はこのエディタでは未対応です）", "error");
+      return;
+    }
+    if (!resp.ok) {
+      setStatus(`読み込み失敗 (${resp.status})`, "error");
+      return;
+    }
+    const data = await resp.json();
+    if (Array.isArray(data)) {
+      setStatus("これはフォルダです。ファイルパスを指定してください。", "error");
+      return;
+    }
+    currentPath = path;
+    currentSha = data.sha;
+    editorArea.value = b64DecodeUtf8(data.content);
+    dirty = false;
+    setStatus(`読み込み完了: ${path}`, "ok");
+  }
+
+  async function saveFile() {
+    if (!currentPath) {
+      setStatus("先にファイルを開いてください", "error");
+      return;
+    }
+    setStatus("保存中...");
+    $("saveBtn").disabled = true;
+    try {
+      const body = {
+        message: `Update ${currentPath} via mobile editor (${new Date().toISOString()})`,
+        content: b64EncodeUtf8(editorArea.value),
+        sha: currentSha,
+        branch: defaultBranch,
+      };
+      const resp = await ghFetch(
+        `/repos/${OWNER}/${REPO}/contents/${encodeURI(currentPath)}`,
+        { method: "PUT", body: JSON.stringify(body) }
+      );
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || `保存失敗 (${resp.status})`);
+      }
+      const data = await resp.json();
+      currentSha = data.content.sha;
+      dirty = false;
+      setStatus(`保存完了: ${currentPath}`, "ok");
+    } catch (e) {
+      setStatus(e.message, "error");
+    } finally {
+      $("saveBtn").disabled = false;
+    }
+  }
+
+  // ---- 画面切替 ----
+  function showLogin() {
+    loginView.classList.remove("hidden");
+    editorView.classList.remove("active");
+    $("logoutBtn").style.display = "none";
+  }
+
+  async function showEditor() {
+    loginView.classList.add("hidden");
+    editorView.classList.add("active");
+    $("logoutBtn").style.display = "inline-block";
+    try {
+      await loadRepoInfo();
+      setStatus(`準備完了 (branch: ${defaultBranch})`, "ok");
+    } catch (e) {
+      setStatus(e.message, "error");
+    }
+  }
+
+  // ---- ログイン（PAT貼り付け）----
+  async function startLogin() {
+    const token = $("tokenInput").value.trim();
+    if (!token) {
+      setStatus("トークンを入力してください", "error");
+      return;
+    }
+    saveToken(token);
+    setStatus("確認中...");
+    await showEditor(); // トークンが無効なら showEditor 内から自動的にログイン画面に戻る
+  }
+
+  // ---- イベント ----
+  $("loginBtn").addEventListener("click", startLogin);
+  $("logoutBtn").addEventListener("click", () => {
+    clearToken();
+    editorArea.value = "";
+    currentPath = "";
+    currentSha = null;
+    showLogin();
+  });
+  $("loadBtn").addEventListener("click", () => {
+    const path = pathInput.value.trim();
+    if (!path) return;
+    if (dirty && !confirm("未保存の変更があります。破棄して開きますか？")) return;
+    loadFile(path);
+  });
+  $("saveBtn").addEventListener("click", saveFile);
+  editorArea.addEventListener("input", () => { dirty = true; });
+
+  document.querySelectorAll(".chips button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      pathInput.value = btn.dataset.prefix;
+      pathInput.focus();
+    });
+  });
+
+  let previewMode = false;
+  $("toggleBtn").addEventListener("click", () => {
+    previewMode = !previewMode;
+    if (previewMode) {
+      previewArea.innerHTML = renderMarkdown(editorArea.value);
+      editorArea.classList.add("hidden");
+      previewArea.classList.add("active");
+      $("toggleBtn").textContent = "✏️ 編集";
+    } else {
+      editorArea.classList.remove("hidden");
+      previewArea.classList.remove("active");
+      $("toggleBtn").textContent = "👁 プレビュー";
+    }
+  });
+
+  // 離脱時の未保存警告
+  window.addEventListener("beforeunload", (e) => {
+    if (dirty) { e.preventDefault(); e.returnValue = ""; }
+  });
+
+  // ---- 起動 ----
+  (async () => {
+    if (getToken()) {
+      await showEditor();
+    } else {
+      showLogin();
+    }
+  })();
+})();
+</script>
+</body>
+</html>
