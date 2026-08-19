@@ -391,7 +391,7 @@
       </div>
       <div class="field">
         <label>Gemini モデル</label>
-        <input type="text" id="f-gemini-model" placeholder="gemini-2.0-flash">
+        <input type="text" id="f-gemini-model" placeholder="gemini-3.6-flash">
       </div>
       <div class="sub" style="margin-top:-6px; margin-bottom:0;">
         無料枠のAPIキーは学習に利用される場合があります。避けたい場合は課金登録済みの有料枠キーを使ってください。
@@ -413,7 +413,7 @@ const DEFAULTS = {
   repo: "mynotebook",
   branch: "main",
   folder: "00_inbox",
-  geminiModel: "gemini-2.0-flash",
+  geminiModel: "gemini-3.6-flash",
 };
 
 const editor = document.getElementById('editor');
@@ -679,6 +679,28 @@ function popLastLine(){
 }
 
 // 積み上がっている全文(確定済みの行＋現在行)を、Gemini APIでかな→漢字混じり表記に変換する
+// Gemini generateContent を1回呼ぶ。エラー時はレスポンス本文をできるだけ読み取ってメッセージにする
+async function callGeminiGenerateContent(model, prompt, apiKey){
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const res = await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+  });
+  if(!res.ok){
+    const bodyText = await res.text().catch(()=>'');
+    let message = `Gemini API error (${res.status})`;
+    try{
+      const errData = JSON.parse(bodyText);
+      message = errData.error?.message || message;
+    }catch(_e){
+      if(bodyText) message = bodyText.slice(0, 300);
+    }
+    throw new Error(message);
+  }
+  return res.json();
+}
+
 async function doConvert(){
   const text = currentFullText();
   if(!text.trim()) return;
@@ -692,8 +714,6 @@ async function doConvert(){
   convertBtn.disabled = true;
   convertBtn.textContent = '変換中…';
 
-  const model = settings.geminiModel || DEFAULTS.geminiModel;
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(settings.geminiKey)}`;
   const prompt = [
     'あなたは日本語の表記変換だけを行うツールです。',
     '以下の文章は、ひらがな中心で書かれた日本語のメモです。',
@@ -707,21 +727,28 @@ async function doConvert(){
     text,
   ].join('\n');
 
-  try{
-    const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
+  let model = settings.geminiModel || DEFAULTS.geminiModel;
 
-    if(!res.ok){
-      const errData = await res.json().catch(()=>({}));
-      throw new Error(errData.error?.message || `Gemini API error (${res.status})`);
+  try{
+    let data;
+    try{
+      data = await callGeminiGenerateContent(model, prompt, settings.geminiKey);
+    }catch(e){
+      // モデル廃止時、Google側のエラー文言に代替モデル名("...use models/xxx...")が
+      // 含まれていることがあるため、それを拾って1回だけ自動リトライする
+      const m = /use\s+models\/([a-zA-Z0-9._-]+)/i.exec(e.message);
+      if(m && m[1] && m[1] !== model){
+        model = m[1];
+        data = await callGeminiGenerateContent(model, prompt, settings.geminiKey);
+        // 次回から新しいモデル名を使うよう設定にも保存しておく
+        settings.geminiModel = model;
+        fGeminiModel.value = model;
+        try{ localStorage.setItem('zen:settings:github', JSON.stringify(settings)); }catch(_e){}
+      }else{
+        throw e;
+      }
     }
 
-    const data = await res.json();
     const resultText = (data.candidates?.[0]?.content?.parts || [])
       .map(p => p.text || '').join('');
     if(!resultText.trim()){
