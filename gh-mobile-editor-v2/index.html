@@ -643,6 +643,16 @@ function commitLine(){
   scheduleDraftSave();
 }
 
+// 直前にEnterで持ち上げた行を、fullTextから取り出して下段に戻す(commitLineの逆操作)
+function popLastLine(){
+  if (fullText.length === 0) return null;
+  const withoutTrailingNL = fullText.slice(0, -1); // 末尾の\nを除く
+  const idx = withoutTrailingNL.lastIndexOf('\n');
+  const line = idx === -1 ? withoutTrailingNL : withoutTrailingNL.slice(idx + 1);
+  fullText = idx === -1 ? '' : withoutTrailingNL.slice(0, idx + 1);
+  return line;
+}
+
 async function doSave(){
   const text = currentFullText();
   if(!text.trim()) return;
@@ -747,6 +757,23 @@ editor.addEventListener('keydown', (e)=>{
     if(isComposing) return; // IME変換確定のEnterは横取りしない
     e.preventDefault();
     commitLine();
+    return;
+  }
+  if(e.key === 'Backspace'){
+    if(isComposing) return;
+    const atStart = editor.selectionStart === 0 && editor.selectionEnd === 0;
+    if(atStart && fullText.length > 0){
+      e.preventDefault();
+      const restored = popLastLine();
+      if(restored !== null){
+        const rest = editor.value;
+        editor.value = restored + rest;
+        editor.setSelectionRange(restored.length, restored.length);
+        updateCaretPosition();
+        updateCount();
+        scheduleDraftSave();
+      }
+    }
   }
 });
 
