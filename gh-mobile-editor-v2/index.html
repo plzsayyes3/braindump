@@ -444,8 +444,14 @@ measureMirror.style.cssText = 'position:absolute; left:-9999px; top:-9999px; vis
 document.body.appendChild(measureMirror);
 function syncMeasureFont(){
   const cs = getComputedStyle(editor);
-  measureMirror.style.font = cs.font;
-  measureMirror.style.letterSpacing = cs.letterSpacing;
+  // font(ショートハンド)は<input>に対してgetComputedStyleが空文字を返す環境があり、
+  // その場合ミラーが全く違うフォールバックフォントで測定してしまいキャレット位置が
+  // 大きくズレる(文字が見えなくなる)ため、個別プロパティで確実に設定する
+  measureMirror.style.fontFamily = cs.fontFamily || "'Noto Serif JP','Zen Old Mincho',serif";
+  measureMirror.style.fontSize = cs.fontSize || '19px';
+  measureMirror.style.fontWeight = cs.fontWeight || '300';
+  measureMirror.style.fontStyle = cs.fontStyle || 'normal';
+  measureMirror.style.letterSpacing = cs.letterSpacing || 'normal';
 }
 function measureTextWidth(text){
   measureMirror.textContent = text;
