@@ -128,6 +128,24 @@
     opacity:0.55;
   }
 
+  /* 現在行が画面幅を超えてあふれた分を積み上げる、上段の履歴行 */
+  .history-row{
+    position:fixed;
+    left:50%;
+    width:min(680px, 86vw);
+    height:44px;
+    line-height:44px;
+    overflow:hidden;
+    white-space:pre;
+    text-align:right;
+    font-family:'Noto Serif JP','Zen Old Mincho', serif;
+    font-weight:300;
+    font-size:19px;
+    color:var(--paper);
+    pointer-events:none;
+    transform:translateX(-50%);
+  }
+
   /* settings gear */
   .gear{
     position:fixed;
@@ -312,6 +330,8 @@
     </svg>
   </button>
 
+  <div id="historyRows"></div>
+
   <div class="typewriter" id="typewriter">
     <div class="caret-guide"></div>
     <input id="editor" type="text" placeholder="書き始める……" autofocus
@@ -374,6 +394,7 @@ const DEFAULTS = {
 };
 
 const editor = document.getElementById('editor');
+const typewriter = document.getElementById('typewriter');
 const countEl = document.getElementById('count');
 const saveBtn = document.getElementById('saveBtn');
 const gearBtn = document.getElementById('gearBtn');
@@ -423,6 +444,65 @@ function updateCaretPosition(){
   const before = editor.value.slice(0, pos);
   const width = measureCtx.measureText(before).width;
   editor.style.transform = `translateX(${-width}px)`;
+  updateHistoryRows(before);
+}
+
+// 文字列の「末尾」から数えて、maxWidthPx に収まる最大の接尾辞を返す
+function suffixFit(text, maxWidthPx){
+  if (text.length === 0) return { text: '', startIndex: 0 };
+  let lo = 0, hi = text.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    const w = measureCtx.measureText(text.slice(text.length - mid)).width;
+    if (w <= maxWidthPx) lo = mid; else hi = mid - 1;
+  }
+  return { text: text.slice(text.length - lo), startIndex: text.length - lo };
+}
+
+const historyRowsEl = document.getElementById('historyRows');
+let historyRowPool = [];
+
+// 現在行(下段, キャレット直前まで)が画面幅からあふれた分を、画面幅いっぱいずつに
+// 区切って上段・さらに上段…と積み上げて表示する
+function updateHistoryRows(textBeforeCaret){
+  const rowWidthPx = typewriter.clientWidth;
+  const halfWidthPx = rowWidthPx / 2;
+
+  // 下段(現在行)に収まる分(中央から左半分)を除いた、それより古い部分
+  const bottomFit = suffixFit(textBeforeCaret, halfWidthPx);
+  let remaining = textBeforeCaret.slice(0, bottomFit.startIndex);
+
+  const rows = [];
+  while (remaining.length > 0) {
+    const fit = suffixFit(remaining, rowWidthPx);
+    if (fit.text.length > 0) {
+      rows.unshift(fit.text);
+      remaining = remaining.slice(0, fit.startIndex);
+    } else {
+      // 極端に幅が狭い等で1文字も入らない場合のフォールバック
+      rows.unshift(remaining.slice(-1));
+      remaining = remaining.slice(0, -1);
+    }
+  }
+
+  // DOM反映(プールを使い回す)
+  while (historyRowPool.length < rows.length) {
+    const div = document.createElement('div');
+    div.className = 'history-row';
+    historyRowsEl.appendChild(div);
+    historyRowPool.push(div);
+  }
+  rows.forEach((text, i) => {
+    const div = historyRowPool[i];
+    div.textContent = text;
+    // rows[rows.length-1]が下段のすぐ上(K=1)、rows[0]が一番上
+    const k = rows.length - i;
+    div.style.top = `calc(50dvh - 22px - ${k * 44}px)`;
+    div.style.display = '';
+  });
+  for (let i = rows.length; i < historyRowPool.length; i++) {
+    historyRowPool[i].style.display = 'none';
+  }
 }
 
 async function loadSettings(){
