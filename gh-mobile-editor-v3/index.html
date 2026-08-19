@@ -570,13 +570,16 @@ async function loadSettings(){
 }
 
 async function saveSettings(){
+  const prev = settings || {};
+  // Token/Gemini Keyは空欄のまま保存すると、既存の有効な値を空文字で
+  // 上書きして壊してしまうので、空欄なら「前の値を維持」する
   const obj = {
-    token: fToken.value.trim(),
+    token: fToken.value.trim() || prev.token || '',
     owner: fOwner.value.trim() || DEFAULTS.owner,
     repo: fRepo.value.trim() || DEFAULTS.repo,
     branch: fBranch.value.trim() || DEFAULTS.branch,
     folder: (fFolder.value.trim() || DEFAULTS.folder).replace(/^\/+|\/+$/g,''),
-    geminiKey: fGeminiKey.value.trim(),
+    geminiKey: fGeminiKey.value.trim() || prev.geminiKey || '',
     geminiModel: fGeminiModel.value.trim() || DEFAULTS.geminiModel,
   };
   try{
