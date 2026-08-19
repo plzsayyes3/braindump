@@ -115,12 +115,17 @@
     background:transparent;
     border:none;
     outline:none;
+    margin:0;
     color:var(--paper);
     font-family:'Noto Serif JP','Zen Old Mincho', serif;
     font-weight:300;
     font-size:19px;
     line-height:44px;
     padding:0;
+    /* iOS標準のフォーム部品の見た目・内部余白を消し、CSSで指定した位置と実際の描画がズレないようにする */
+    appearance:none;
+    -webkit-appearance:none;
+    border-radius:0;
     will-change:transform;
   }
   #editor::placeholder{
@@ -144,6 +149,7 @@
     color:var(--paper);
     pointer-events:none;
     transform:translateX(-50%);
+    transition:opacity .15s ease;
   }
 
   /* settings gear */
@@ -430,19 +436,27 @@ function updateCount(){
   countEl.textContent = currentFullText().length + '字';
 }
 
-// ---- キャレット位置の計測（canvasでピクセル幅を測り、キャレットが常に画面中央に来るようtranslateXする）----
-const measureCanvas = document.createElement('canvas');
-const measureCtx = measureCanvas.getContext('2d');
+// ---- キャレット位置の計測（実際のDOMに同じスタイルのミラー要素を用意して幅を測る）----
+// canvasのmeasureTextだと実際のinput描画とごく僅かにズレることがあるため、
+// 見た目と完全に同じレンダリングパイプラインで測れるDOMミラー方式にしている
+const measureMirror = document.createElement('span');
+measureMirror.style.cssText = 'position:absolute; left:-9999px; top:-9999px; visibility:hidden; white-space:pre;';
+document.body.appendChild(measureMirror);
 function syncMeasureFont(){
   const cs = getComputedStyle(editor);
-  measureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  measureMirror.style.font = cs.font;
+  measureMirror.style.letterSpacing = cs.letterSpacing;
+}
+function measureTextWidth(text){
+  measureMirror.textContent = text;
+  return measureMirror.getBoundingClientRect().width;
 }
 function updateCaretPosition(){
   // IME変換中はブラウザによってselectionStartの扱いが揺れることがあるため、
   // 変換中は素直に「今の文字列の末尾」を基準にする
   const pos = isComposing ? editor.value.length : (editor.selectionStart ?? editor.value.length);
   const before = editor.value.slice(0, pos);
-  const width = measureCtx.measureText(before).width;
+  const width = measureTextWidth(before);
   editor.style.transform = `translateX(${-width}px)`;
   updateHistoryRows(before);
 }
@@ -453,7 +467,7 @@ function suffixFit(text, maxWidthPx){
   let lo = 0, hi = text.length;
   while (lo < hi) {
     const mid = Math.ceil((lo + hi) / 2);
-    const w = measureCtx.measureText(text.slice(text.length - mid)).width;
+    const w = measureTextWidth(text.slice(text.length - mid));
     if (w <= maxWidthPx) lo = mid; else hi = mid - 1;
   }
   return { text: text.slice(text.length - lo), startIndex: text.length - lo };
@@ -498,6 +512,8 @@ function updateHistoryRows(textBeforeCaret){
     // rows[rows.length-1]が下段のすぐ上(K=1)、rows[0]が一番上
     const k = rows.length - i;
     div.style.top = `calc(50dvh - 22px - ${k * 44}px)`;
+    // 古い(上にある)段ほど薄くする
+    div.style.opacity = String(Math.max(0.08, 1 - k * 0.22));
     div.style.display = '';
   });
   for (let i = rows.length; i < historyRowPool.length; i++) {
