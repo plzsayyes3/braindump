@@ -458,7 +458,8 @@ function updateCaretPosition(){
   const before = editor.value.slice(0, pos);
   const width = measureTextWidth(before);
   editor.style.transform = `translateX(${-width}px)`;
-  updateHistoryRows(before);
+  // 確定済み(Enterで持ち上がった)行も含めて表示する
+  updateHistoryRows(fullText + before);
 }
 
 // 文字列の「末尾」から数えて、maxWidthPx に収まる最大の接尾辞を返す
@@ -473,31 +474,51 @@ function suffixFit(text, maxWidthPx){
   return { text: text.slice(text.length - lo), startIndex: text.length - lo };
 }
 
-const historyRowsEl = document.getElementById('historyRows');
-let historyRowPool = [];
-
-// 現在行(下段, キャレット直前まで)が画面幅からあふれた分を、画面幅いっぱいずつに
-// 区切って上段・さらに上段…と積み上げて表示する
-function updateHistoryRows(textBeforeCaret){
-  const rowWidthPx = typewriter.clientWidth;
-  const halfWidthPx = rowWidthPx / 2;
-
-  // 下段(現在行)に収まる分(中央から左半分)を除いた、それより古い部分
-  const bottomFit = suffixFit(textBeforeCaret, halfWidthPx);
-  let remaining = textBeforeCaret.slice(0, bottomFit.startIndex);
-
-  const rows = [];
+// 1行分の文字列を、画面幅いっぱいずつの段に区切る(末尾側が先に埋まる)
+function wrapFullWidth(text, rowWidthPx){
+  const out = [];
+  let remaining = text;
+  if (remaining.length === 0) return out;
   while (remaining.length > 0) {
     const fit = suffixFit(remaining, rowWidthPx);
     if (fit.text.length > 0) {
-      rows.unshift(fit.text);
+      out.unshift(fit.text);
       remaining = remaining.slice(0, fit.startIndex);
     } else {
       // 極端に幅が狭い等で1文字も入らない場合のフォールバック
-      rows.unshift(remaining.slice(-1));
+      out.unshift(remaining.slice(-1));
       remaining = remaining.slice(0, -1);
     }
   }
+  return out;
+}
+
+const historyRowsEl = document.getElementById('historyRows');
+let historyRowPool = [];
+
+// これまでの全文(改行で区切られた確定済みの行＋今打っている行)を、
+// 画面幅いっぱいずつの段に区切って上へ積み上げて表示する。
+// Enterで区切られた行は、幅に関わらずそこで必ず段が変わる(=1行持ち上がる)。
+function updateHistoryRows(textUpToCaret){
+  const rowWidthPx = typewriter.clientWidth;
+  const halfWidthPx = rowWidthPx / 2;
+
+  const lines = textUpToCaret.split('\n');
+  const currentLine = lines.pop(); // 今打っている(まだ確定していない)行
+
+  const rows = [];
+  for (const line of lines) {
+    if (line.length === 0) {
+      rows.push(''); // 空行でも1段分の余白として持ち上げる
+    } else {
+      rows.push(...wrapFullWidth(line, rowWidthPx));
+    }
+  }
+
+  // 今打っている行: 下段(中央から左半分)に収まる分を除いた、それより古い部分を積む
+  const bottomFit = suffixFit(currentLine, halfWidthPx);
+  const beforeBottom = currentLine.slice(0, bottomFit.startIndex);
+  rows.push(...wrapFullWidth(beforeBottom, rowWidthPx));
 
   // DOM反映(プールを使い回す)
   while (historyRowPool.length < rows.length) {
