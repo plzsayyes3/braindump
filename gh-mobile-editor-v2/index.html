@@ -68,14 +68,42 @@
     width:min(680px, 86vw);
     height:44px;
     overflow:hidden;
+    /* 中央(=今打っている文字)がはっきり見え、そこから離れるほど薄くなるフェード */
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(0,0,0,0.18) 12%,
+      rgba(0,0,0,0.65) 32%,
+      black 46%,
+      black 54%,
+      rgba(0,0,0,0.65) 68%,
+      rgba(0,0,0,0.18) 88%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(0,0,0,0.18) 12%,
+      rgba(0,0,0,0.65) 32%,
+      black 46%,
+      black 54%,
+      rgba(0,0,0,0.65) 68%,
+      rgba(0,0,0,0.18) 88%,
+      transparent 100%
+    );
   }
+  /* フォーカスポイント: 今打っている文字を囲む角丸の枠 */
   .caret-guide{
     position:absolute;
     left:50%;
-    top:6px; bottom:6px;
-    width:1px;
-    background:var(--hanko);
-    opacity:0.35;
+    top:50%;
+    width:28px;
+    height:34px;
+    transform:translate(-50%, -50%);
+    border:1.5px solid var(--hanko);
+    border-radius:8px;
+    background:rgba(178,58,46,0.08);
+    opacity:0.85;
     pointer-events:none;
   }
   #editor{
