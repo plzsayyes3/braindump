@@ -845,6 +845,29 @@ async function doSave(){
   }
 }
 
+// このモードは「あとでAIが漢字変換する」前提のため、IME側の漢字変換候補を
+// 選んでしまっても、確定した瞬間に漢字・カタカナを取り除きひらがな・英数字に戻す。
+// (ウェブにはIMEの変換候補UI自体を無効化する手段がないため、確定後に検知して打ち消す方式)
+const KANA_ALLOWED_RE = /[぀-ゟーa-zA-Z0-9０-９Ａ-Ｚａ-ｚ\s。、！？「」『』（）・…\.\,\!\?\(\)\-\/]/;
+
+function sanitizeToKana(){
+  const val = editor.value;
+  const caret = editor.selectionStart ?? val.length;
+  let allowedBeforeCaret = 0;
+  let filtered = '';
+  for (let i = 0; i < val.length; i++){
+    const ch = val[i];
+    if (KANA_ALLOWED_RE.test(ch)){
+      filtered += ch;
+      if (i < caret) allowedBeforeCaret++;
+    }
+  }
+  if (filtered !== val){
+    editor.value = filtered;
+    editor.setSelectionRange(allowedBeforeCaret, allowedBeforeCaret);
+  }
+}
+
 editor.addEventListener('compositionstart', ()=>{ isComposing = true; });
 // モバイルのIMEは変換確定前(下線状態)の間、inputイベントが安定して飛ばないことがあるため、
 // compositionupdate でも都度キャレット位置を更新して追従させる
@@ -855,12 +878,14 @@ editor.addEventListener('compositionupdate', ()=>{
 });
 editor.addEventListener('compositionend', ()=>{
   isComposing = false;
+  sanitizeToKana(); // 変換確定で漢字/カタカナが入っていたら打ち消す
   updateCaretPosition();
   updateCount();
   scheduleDraftSave();
 });
 
 editor.addEventListener('input', ()=>{
+  if(!isComposing) sanitizeToKana(); // 合成中はIMEの状態を壊さないよう手を出さない
   updateCaretPosition();
   updateCount();
   scheduleDraftSave();
