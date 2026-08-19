@@ -342,7 +342,7 @@
 
   <div class="typewriter" id="typewriter">
     <div class="caret-guide"></div>
-    <input id="editor" type="text" placeholder="書き始める……" autofocus
+    <input id="editor" type="text" placeholder="書き始める……" autofocus lang="en"
            autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
   </div>
 
@@ -727,11 +727,13 @@ async function doConvert(){
 
   const prompt = [
     'あなたは日本語の表記変換だけを行うツールです。',
-    '以下の文章は、ひらがな中心で書かれた日本語のメモです。',
-    '意味・言い回し・行数・改行位置はできるだけ変えずに、次の2つを行ってください。',
-    '(1) 一般的な語（名詞・動詞・形容詞など）に加え、人名・地名・商標名などの固有名詞も含めて、',
+    '以下の文章は、日本語のメモです。ヘボン式などのローマ字（例: kyouhatenkidesune）、',
+    'ひらがな、またはその混在で書かれています。IME変換を経由せず直接入力したものです。',
+    '意味・言い回し・行数・改行位置はできるだけ変えずに、次の3つを行ってください。',
+    '(1) ローマ字部分は自然な日本語の読みに変換する（例: kyouhatenkidesune → 今日は天気ですね）。',
+    '(2) 一般的な語（名詞・動詞・形容詞など）に加え、人名・地名・商標名などの固有名詞も含めて、',
     '    適切な常用漢字・一般的な表記に変換する。',
-    '(2) 明らかな誤字・脱字・打ち間違いがあれば、自然な形に修正する。',
+    '(3) 明らかな誤字・脱字・打ち間違いがあれば、自然な形に修正する。',
     '前置きや説明、コードブロックは付けず、変換後の文章のみを、入力と同じ行数で出力してください。',
     '',
     '---',
