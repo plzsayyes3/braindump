@@ -389,7 +389,9 @@ function syncMeasureFont(){
   measureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
 }
 function updateCaretPosition(){
-  const pos = editor.selectionStart ?? editor.value.length;
+  // IME変換中はブラウザによってselectionStartの扱いが揺れることがあるため、
+  // 変換中は素直に「今の文字列の末尾」を基準にする
+  const pos = isComposing ? editor.value.length : (editor.selectionStart ?? editor.value.length);
   const before = editor.value.slice(0, pos);
   const width = measureCtx.measureText(before).width;
   editor.style.transform = `translateX(${-width}px)`;
@@ -559,7 +561,19 @@ async function doSave(){
 }
 
 editor.addEventListener('compositionstart', ()=>{ isComposing = true; });
-editor.addEventListener('compositionend', ()=>{ isComposing = false; updateCaretPosition(); });
+// モバイルのIMEは変換確定前(下線状態)の間、inputイベントが安定して飛ばないことがあるため、
+// compositionupdate でも都度キャレット位置を更新して追従させる
+editor.addEventListener('compositionupdate', ()=>{
+  updateCaretPosition();
+  updateCount();
+  scheduleDraftSave();
+});
+editor.addEventListener('compositionend', ()=>{
+  isComposing = false;
+  updateCaretPosition();
+  updateCount();
+  scheduleDraftSave();
+});
 
 editor.addEventListener('input', ()=>{
   updateCaretPosition();
