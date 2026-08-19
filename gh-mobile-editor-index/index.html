@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="禅ノート">
+<title>禅ノート - Notebook Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Zen+Old+Mincho:wght@400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1C1B19;
+    --paper:#EAE4D8;
+    --muted:#8C8577;
+    --hairline:#33312C;
+    --hanko:#B23A2E;
+    --hanko-glow:rgba(178,58,46,0.18);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--paper);
+    font-family:'Noto Serif JP','Zen Old Mincho', serif;
+    -webkit-font-smoothing:antialiased;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    min-height:100dvh;
+    display:flex;
+    justify-content:center;
+  }
+  .page{
+    width:min(560px, 90vw);
+    padding:14vh 0 10vh;
+  }
+  header{
+    margin-bottom:56px;
+    text-align:center;
+  }
+  header .dot{
+    display:inline-block;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:var(--hanko);
+    margin-bottom:14px;
+  }
+  header h1{
+    font-size:26px;
+    font-weight:400;
+    letter-spacing:0.12em;
+    color:var(--paper);
+  }
+  header .sub{
+    margin-top:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.08em;
+  }
+
+  .cards{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  a.card{
+    display:block;
+    text-decoration:none;
+    color:inherit;
+    border:1px solid var(--hairline);
+    border-radius:6px;
+    padding:20px 22px;
+    background:#211F1C;
+    transition:border-color .2s ease, transform .2s ease, background .2s ease;
+  }
+  a.card:hover, a.card:active{
+    border-color:var(--hanko);
+    background:#252220;
+    transform:translateY(-1px);
+  }
+  .card-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .card-version{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--hanko);
+    letter-spacing:0.1em;
+  }
+  .card-arrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    transition:transform .2s ease;
+  }
+  a.card:hover .card-arrow, a.card:active .card-arrow{
+    transform:translateX(3px);
+    color:var(--hanko);
+  }
+  .card-title{
+    font-size:18px;
+    font-weight:400;
+    color:var(--paper);
+    margin-bottom:6px;
+    letter-spacing:0.02em;
+  }
+  .card-desc{
+    font-size:13.5px;
+    line-height:1.75;
+    color:var(--muted);
+  }
+  .card-desc b{
+    color:var(--paper);
+    font-weight:400;
+    border-bottom:1px solid var(--hairline);
+  }
+
+  footer{
+    margin-top:48px;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--muted);
+    letter-spacing:0.04em;
+    line-height:1.9;
+  }
+  footer a{ color:var(--muted); }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <span class="dot"></span>
+      <h1>禅ノート</h1>
+      <div class="sub">NOTEBOOK EDITOR — plzsayyes3/mynotebook</div>
+    </header>
+
+    <div class="cards">
+      <a class="card" href="../gh-mobile-editor/">
+        <div class="card-top">
+          <span class="card-version">v1</span>
+          <span class="card-arrow">開く →</span>
+        </div>
+        <div class="card-title">パス指定エディタ</div>
+        <div class="card-desc">既存の<b>ファイルパスを指定して開き</b>、編集して保存する、通常のテキストエディタ形式。Markdownプレビュー付き。</div>
+      </a>
+
+      <a class="card" href="../gh-mobile-editor-v2/">
+        <div class="card-top">
+          <span class="card-version">v2</span>
+          <span class="card-arrow">開く →</span>
+        </div>
+        <div class="card-title">タイプライター</div>
+        <div class="card-desc"><b>カーソルが常に画面中央に固定</b>され、文字は横へ流れていく。画面端で折り返して上段へ積み上がり、Enterで行が持ち上がる、思考をそのまま書き流すための画面。</div>
+      </a>
+
+      <a class="card" href="../gh-mobile-editor-v3/">
+        <div class="card-top">
+          <span class="card-version">v3</span>
+          <span class="card-arrow">開く →</span>
+        </div>
+        <div class="card-title">タイプライター + AI漢字変換</div>
+        <div class="card-desc">v2の書き心地に加えて、<b>ひらがな中心の文章をAI(Gemini)で漢字混じり表記に変換</b>するボタンを追加。誤字脱字も一緒に整える。</div>
+      </a>
+    </div>
+
+    <footer>
+      各バージョンの接続設定(GitHub Token / Gemini API Key)は<br>この端末のブラウザに共通で保存されます
+    </footer>
+  </div>
+</body>
+</html>
