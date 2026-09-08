@@ -2,52 +2,296 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>つながる3Dこうさく</title>
 <style>
-:root{--bg:#f6f7f9;--panel:#fff;--text:#20252b;--accent:#356df3;--ok:#16884a;--bad:#d33f49}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--text)}#app{height:100%;display:grid;grid-template-rows:auto 1fr auto}.bar{display:flex;gap:8px;align-items:center;padding:9px;background:var(--panel);overflow-x:auto;border-bottom:1px solid #dde2e7}.bottom{border-top:1px solid #dde2e7;border-bottom:0}.btn{border:0;border-radius:13px;padding:11px 13px;font-size:15px;font-weight:700;background:#edf1f5;white-space:nowrap}.shape{background:#e9efff}.primary{background:var(--accent);color:#fff}.danger{background:#ffe9e9;color:#a3212a}.btn:disabled{opacity:.35}.active{background:#20252b;color:#fff}#stage{position:relative;min-height:0}canvas{display:block;width:100%;height:100%;touch-action:none}.hint,.status,.error{position:absolute;z-index:3;background:rgba(255,255,255,.93);border-radius:12px;padding:9px 11px;font-size:13px;box-shadow:0 3px 16px #0001}.hint{left:10px;top:10px;max-width:330px}.status{right:10px;top:10px;font-weight:800}.error{display:none;left:10px;right:10px;bottom:10px;color:#a3212a;border:1px solid #efb6b6}.brand{font-weight:900}@media(max-width:700px){.brand{display:none}.btn{font-size:14px;padding:10px 11px}.hint{font-size:12px;max-width:260px}}
+:root{--bg:#f6f7f9;--panel:#fff;--text:#20252b;--accent:#356df3;--ok:#16884a;--bad:#d33f49}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--text);overscroll-behavior:none}
+body{position:fixed;inset:0}
+#app{height:100%;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.bar{display:flex;gap:8px;align-items:center;padding:9px max(9px,env(safe-area-inset-right)) 9px max(9px,env(safe-area-inset-left));background:var(--panel);overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid #dde2e7;scrollbar-width:none}
+.bar::-webkit-scrollbar{display:none}
+.bottom{border-top:1px solid #dde2e7;border-bottom:0;padding-bottom:max(9px,env(safe-area-inset-bottom))}
+.btn{border:0;border-radius:13px;min-height:44px;min-width:44px;padding:10px 13px;font-size:16px;font-weight:700;background:#edf1f5;white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.shape{background:#e9efff}.primary{background:var(--accent);color:#fff}.danger{background:#ffe9e9;color:#a3212a}.btn:disabled{opacity:.35}.active{background:#20252b;color:#fff}
+#stage{position:relative;min-width:0;min-height:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:pointer;-webkit-user-select:none;user-select:none}
+.hint,.status,.error{position:absolute;z-index:3;background:rgba(255,255,255,.93);border-radius:12px;padding:9px 11px;font-size:13px;box-shadow:0 3px 16px #0001;pointer-events:none}
+.hint{left:max(10px,env(safe-area-inset-left));top:10px;max-width:330px}
+.status{right:max(10px,env(safe-area-inset-right));top:10px;font-weight:800}
+.error{display:none;left:10px;right:10px;bottom:10px;color:#a3212a;border:1px solid #efb6b6}
+.brand{font-weight:900}
+@media(max-width:700px){.brand{display:none}.btn{font-size:15px}.hint{font-size:12px;max-width:260px}}
 </style>
 </head>
 <body>
 <div id="app">
-<header class="bar"><span class="brand">つながる3Dこうさく</span><button class="btn shape" data-add="box">□ はこ</button><button class="btn shape" data-add="sphere">● まる</button><button class="btn shape" data-add="cylinder">▰ ぼう</button><button class="btn shape" data-add="cone">△ とんがり</button><button id="copy" class="btn">⧉ コピー</button><button id="del" class="btn danger">✕ けす</button><button id="export" class="btn primary" disabled>できた！ STL</button></header>
-<main id="stage"><div class="hint">重力はありません。空中に置いてOK。<br>でも最後は、全部のパーツが地面までつながっている必要があります。</div><div id="status" class="status">3Dをよみこみ中…</div><div id="error" class="error">3Dの読み込みに失敗しました。ページを再読み込みしてください。</div></main>
-<footer class="bar bottom"><button class="btn active" data-mode="translate">↔ うごかす</button><button class="btn" data-mode="rotate">↻ まわす</button><button class="btn" data-mode="scale">⤢ おおきさ</button><button id="snap" class="btn">🧲 くっつけ補助: ON</button><button id="home" class="btn">⌂ ぜんぶ見る</button></footer>
+<header class="bar">
+<span class="brand">つながる3Dこうさく</span>
+<button class="btn shape" data-add="box">□ はこ</button>
+<button class="btn shape" data-add="sphere">● まる</button>
+<button class="btn shape" data-add="cylinder">▰ ぼう</button>
+<button class="btn shape" data-add="cone">△ とんがり</button>
+<button id="copy" class="btn">⧉ コピー</button>
+<button id="del" class="btn danger">✕ けす</button>
+<button id="export" class="btn primary" disabled>できた！ STL</button>
+</header>
+<main id="stage">
+<div class="hint">重力はありません。空中に置いてOK。<br>でも最後は、全部のパーツが地面までつながっている必要があります。</div>
+<div id="status" class="status">3Dをよみこみ中…</div>
+<div id="error" class="error">3Dの読み込みに失敗しました。Safariを再読み込みしてください。</div>
+</main>
+<footer class="bar bottom">
+<button class="btn active" data-mode="translate">↔ うごかす</button>
+<button class="btn" data-mode="rotate">↻ まわす</button>
+<button class="btn" data-mode="scale">⤢ おおきさ</button>
+<button id="snap" class="btn">🧲 くっつけ補助: ON</button>
+<button id="home" class="btn">⌂ ぜんぶ見る</button>
+</footer>
 </div>
-<script>setTimeout(()=>{if(!window.__kids3dReady)document.getElementById('error').style.display='block'},8000)</script>
+
+<script>
+setTimeout(()=>{if(!window.__kids3dReady){const e=document.getElementById('error');e.style.display='block';e.style.pointerEvents='auto'}},8000);
+</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import {STLExporter} from 'three/addons/exporters/STLExporter.js';
-const stage=document.getElementById('stage'),status=document.getElementById('status'),exportBtn=document.getElementById('export');
-const scene=new THREE.Scene();scene.background=new THREE.Color(0xf6f7f9);
-const camera=new THREE.PerspectiveCamera(45,1,.1,1000);camera.position.set(11,9,13);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;stage.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0xb7c0ca,2));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(7,12,8);sun.castShadow=true;scene.add(sun);
-const grid=new THREE.GridHelper(30,30,0xaab3bd,0xd7dde4);scene.add(grid);const ground=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.35,side:THREE.DoubleSide}));ground.rotation.x=-Math.PI/2;ground.position.y=-.01;scene.add(ground);
-const orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=true;orbit.target.set(0,1,0);orbit.minDistance=4;orbit.maxDistance=45;
-const transform=new TransformControls(camera,renderer.domElement);scene.add(transform.getHelper());transform.addEventListener('dragging-changed',e=>orbit.enabled=!e.value);transform.addEventListener('objectChange',()=>{if(snapOn)snap();updateConnectivity()});
-const parts=[];let selected=null,snapOn=true,color=0;const colors=[0xffb84d,0x62b6ff,0x8fd36b,0xff8298,0xb29cff,0xffd45f],EPS=.09;
-function geom(t){if(t==='box')return new THREE.BoxGeometry(2,2,2);if(t==='sphere')return new THREE.SphereGeometry(1.12,32,20);if(t==='cylinder')return new THREE.CylinderGeometry(1,1,2.5,32);return new THREE.ConeGeometry(1.2,2.6,32)}
-function addPart(t,pos){const m=new THREE.Mesh(geom(t),new THREE.MeshStandardMaterial({color:colors[color++%colors.length],roughness:.55}));m.userData.type=t;m.position.copy(pos||new THREE.Vector3(0,1.2,0));m.castShadow=true;m.receiveShadow=true;scene.add(m);parts.push(m);select(m);updateConnectivity();return m}
-function select(o){selected=o;transform.detach();if(o)transform.attach(o);for(const p of parts)p.material.emissive.setHex(p===o?0x181818:0)}
-function box(o,pad=0){o.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(o);if(pad)b.expandByScalar(pad);return b}
-function touching(a,b){return box(a,EPS).intersectsBox(box(b,EPS))}function groundTouch(p){return box(p).min.y<=EPS}
-function connectedSet(){const set=new Set(),q=[];for(const p of parts)if(groundTouch(p)){set.add(p);q.push(p)}while(q.length){const a=q.shift();for(const p of parts)if(!set.has(p)&&touching(a,p)){set.add(p);q.push(p)}}return set}
-function updateConnectivity(){const c=connectedSet();for(const p of parts){p.material.transparent=true;p.material.opacity=c.has(p)?1:.55}const ok=parts.length>0&&c.size===parts.length;exportBtn.disabled=!ok;if(!parts.length){status.textContent='パーツを置いてね';status.style.color='#20252b'}else if(ok){status.textContent='✓ 全部つながってる！';status.style.color='#16884a'}else{status.textContent=`あと ${parts.length-c.size} こ つなげよう`;status.style.color='#d33f49'}}
-function snap(){if(!selected)return;const s=.25;selected.position.x=Math.round(selected.position.x/s)*s;selected.position.z=Math.round(selected.position.z/s)*s;const b=box(selected);if(Math.abs(b.min.y)<.22)selected.position.y-=b.min.y}
-function copy(){if(!selected)return;const c=selected.clone();c.geometry=selected.geometry.clone();c.material=selected.material.clone();c.position.x+=1;c.position.y+=.4;scene.add(c);parts.push(c);select(c);updateConnectivity()}
-function del(){if(!selected)return;const i=parts.indexOf(selected);if(i>=0)parts.splice(i,1);scene.remove(selected);selected=null;transform.detach();updateConnectivity()}
-function fit(){if(!parts.length)return;const b=new THREE.Box3();for(const p of parts)b.union(box(p));const s=b.getSize(new THREE.Vector3()),c=b.getCenter(new THREE.Vector3()),m=Math.max(s.x,s.y,s.z,4);orbit.target.copy(c);camera.position.copy(c).add(new THREE.Vector3(m*1.5,m*1.2,m*1.7))}
-function exportSTL(){if(exportBtn.disabled)return;const g=new THREE.Group();for(const p of parts){p.updateMatrixWorld(true);const geo=p.geometry.clone();geo.applyMatrix4(p.matrixWorld);g.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial()))}const data=new STLExporter().parse(g,{binary:true});const blob=new Blob([data],{type:'model/stl'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='my_3d_model.stl';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-const ray=new THREE.Raycaster(),pt=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',e=>{if(transform.dragging||transform.axis)return;const r=renderer.domElement.getBoundingClientRect();pt.x=((e.clientX-r.left)/r.width)*2-1;pt.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(pt,camera);const h=ray.intersectObjects(parts,false);select(h.length?h[0].object:null)});
-document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>addPart(b.dataset.add)));document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('active'));b.classList.add('active');transform.setMode(b.dataset.mode)}));
-document.getElementById('copy').onclick=copy;document.getElementById('del').onclick=del;exportBtn.onclick=exportSTL;document.getElementById('home').onclick=fit;document.getElementById('snap').onclick=e=>{snapOn=!snapOn;e.currentTarget.textContent=`🧲 くっつけ補助: ${snapOn?'ON':'OFF'}`};
-function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(stage);resize();
-addPart('box',new THREE.Vector3(0,1,0));fit();status.textContent='✓ さいしょの立方体';window.__kids3dReady=true;window.__kids3d={parts,addPart,connectedSet};
-function loop(){requestAnimationFrame(loop);orbit.update();renderer.render(scene,camera)}loop();
+
+const stage=document.getElementById('stage');
+const status=document.getElementById('status');
+const exportBtn=document.getElementById('export');
+const errorBox=document.getElementById('error');
+
+let renderer;
+try{
+  renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+}catch(err){
+  errorBox.textContent='この端末では3D表示を開始できませんでした。Safariの設定とOSを確認してください。';
+  errorBox.style.display='block';
+  throw err;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+stage.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xf6f7f9);
+const camera=new THREE.PerspectiveCamera(45,1,.1,1000);
+camera.position.set(11,9,13);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0xb7c0ca,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(7,12,8);
+sun.castShadow=true;
+scene.add(sun);
+
+const grid=new THREE.GridHelper(30,30,0xaab3bd,0xd7dde4);
+scene.add(grid);
+const ground=new THREE.Mesh(
+  new THREE.PlaneGeometry(30,30),
+  new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.35,side:THREE.DoubleSide})
+);
+ground.rotation.x=-Math.PI/2;
+ground.position.y=-.01;
+scene.add(ground);
+
+const orbit=new OrbitControls(camera,renderer.domElement);
+orbit.enableDamping=true;
+orbit.target.set(0,1,0);
+orbit.minDistance=4;
+orbit.maxDistance=45;
+orbit.screenSpacePanning=true;
+
+const transform=new TransformControls(camera,renderer.domElement);
+transform.setSize(1.35);
+scene.add(transform.getHelper());
+transform.addEventListener('dragging-changed',e=>orbit.enabled=!e.value);
+transform.addEventListener('objectChange',()=>{if(snapOn)snap();updateConnectivity()});
+
+const parts=[];
+let selected=null,snapOn=true,color=0;
+const colors=[0xffb84d,0x62b6ff,0x8fd36b,0xff8298,0xb29cff,0xffd45f];
+const EPS=.09;
+
+function geom(t){
+  if(t==='box')return new THREE.BoxGeometry(2,2,2);
+  if(t==='sphere')return new THREE.SphereGeometry(1.12,32,20);
+  if(t==='cylinder')return new THREE.CylinderGeometry(1,1,2.5,32);
+  return new THREE.ConeGeometry(1.2,2.6,32);
+}
+function addPart(t,pos){
+  const m=new THREE.Mesh(geom(t),new THREE.MeshStandardMaterial({color:colors[color++%colors.length],roughness:.55}));
+  m.userData.type=t;
+  m.position.copy(pos||new THREE.Vector3(0,1.2,0));
+  m.castShadow=true;
+  m.receiveShadow=true;
+  scene.add(m);
+  parts.push(m);
+  select(m);
+  updateConnectivity();
+  return m;
+}
+function select(o){
+  selected=o;
+  transform.detach();
+  if(o)transform.attach(o);
+  for(const p of parts)p.material.emissive.setHex(p===o?0x181818:0);
+}
+function box(o,pad=0){
+  o.updateMatrixWorld(true);
+  const b=new THREE.Box3().setFromObject(o);
+  if(pad)b.expandByScalar(pad);
+  return b;
+}
+function touching(a,b){return box(a,EPS).intersectsBox(box(b,EPS))}
+function groundTouch(p){return box(p).min.y<=EPS}
+function connectedSet(){
+  const set=new Set(),q=[];
+  for(const p of parts)if(groundTouch(p)){set.add(p);q.push(p)}
+  while(q.length){
+    const a=q.shift();
+    for(const p of parts)if(!set.has(p)&&touching(a,p)){set.add(p);q.push(p)}
+  }
+  return set;
+}
+function updateConnectivity(){
+  const c=connectedSet();
+  for(const p of parts){p.material.transparent=true;p.material.opacity=c.has(p)?1:.55}
+  const ok=parts.length>0&&c.size===parts.length;
+  exportBtn.disabled=!ok;
+  if(!parts.length){status.textContent='パーツを置いてね';status.style.color='#20252b'}
+  else if(ok){status.textContent='✓ 全部つながってる！';status.style.color='#16884a'}
+  else{status.textContent=`あと ${parts.length-c.size} こ つなげよう`;status.style.color='#d33f49'}
+}
+function snap(){
+  if(!selected)return;
+  const s=.25;
+  selected.position.x=Math.round(selected.position.x/s)*s;
+  selected.position.z=Math.round(selected.position.z/s)*s;
+  const b=box(selected);
+  if(Math.abs(b.min.y)<.22)selected.position.y-=b.min.y;
+}
+function copy(){
+  if(!selected)return;
+  const c=selected.clone();
+  c.geometry=selected.geometry.clone();
+  c.material=selected.material.clone();
+  c.position.x+=1;
+  c.position.y+=.4;
+  scene.add(c);
+  parts.push(c);
+  select(c);
+  updateConnectivity();
+}
+function del(){
+  if(!selected)return;
+  const i=parts.indexOf(selected);
+  if(i>=0)parts.splice(i,1);
+  scene.remove(selected);
+  selected=null;
+  transform.detach();
+  updateConnectivity();
+}
+function fit(){
+  if(!parts.length)return;
+  const b=new THREE.Box3();
+  for(const p of parts)b.union(box(p));
+  const s=b.getSize(new THREE.Vector3()),c=b.getCenter(new THREE.Vector3()),m=Math.max(s.x,s.y,s.z,4);
+  orbit.target.copy(c);
+  camera.position.copy(c).add(new THREE.Vector3(m*1.5,m*1.2,m*1.7));
+  orbit.update();
+}
+function exportSTL(){
+  if(exportBtn.disabled)return;
+  const g=new THREE.Group();
+  for(const p of parts){
+    p.updateMatrixWorld(true);
+    const geo=p.geometry.clone();
+    geo.applyMatrix4(p.matrixWorld);
+    g.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial()));
+  }
+  const data=new STLExporter().parse(g,{binary:true});
+  const blob=new Blob([data],{type:'model/stl'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='my_3d_model.stl';
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},1500);
+}
+
+const ray=new THREE.Raycaster(),pt=new THREE.Vector2();
+renderer.domElement.addEventListener('pointerdown',e=>{
+  if(transform.dragging||transform.axis)return;
+  const r=renderer.domElement.getBoundingClientRect();
+  pt.x=((e.clientX-r.left)/r.width)*2-1;
+  pt.y=-((e.clientY-r.top)/r.height)*2+1;
+  ray.setFromCamera(pt,camera);
+  const h=ray.intersectObjects(parts,false);
+  select(h.length?h[0].object:null);
+});
+renderer.domElement.addEventListener('pointercancel',()=>{orbit.enabled=true});
+renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+
+document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>addPart(b.dataset.add)));
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  transform.setMode(b.dataset.mode);
+}));
+document.getElementById('copy').addEventListener('click',copy);
+document.getElementById('del').addEventListener('click',del);
+exportBtn.addEventListener('click',exportSTL);
+document.getElementById('home').addEventListener('click',fit);
+document.getElementById('snap').addEventListener('click',e=>{
+  snapOn=!snapOn;
+  e.currentTarget.textContent=`🧲 くっつけ補助: ${snapOn?'ON':'OFF'}`;
+});
+
+function resize(){
+  const w=Math.max(1,stage.clientWidth),h=Math.max(1,stage.clientHeight);
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h;
+  camera.updateProjectionMatrix();
+}
+const ro=new ResizeObserver(resize);
+ro.observe(stage);
+window.addEventListener('orientationchange',()=>setTimeout(resize,150));
+window.addEventListener('resize',resize);
+if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);
+resize();
+
+addPart('box',new THREE.Vector3(0,1,0));
+fit();
+window.__kids3dReady=true;
+window.__kids3d={
+  parts,addPart,connectedSet,
+  diagnostics:{
+    webgl:renderer.capabilities.isWebGL2?'WebGL2':'WebGL1',
+    touch:navigator.maxTouchPoints||0,
+    pixelRatio:renderer.getPixelRatio()
+  }
+};
+
+let raf=0;
+function loop(){
+  raf=requestAnimationFrame(loop);
+  orbit.update();
+  renderer.render(scene,camera);
+}
+loop();
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&raf){cancelAnimationFrame(raf);raf=0}
+  else if(!document.hidden&&!raf)loop();
+});
 </script>
 </body>
 </html>
